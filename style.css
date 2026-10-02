@@ -819,4 +819,147 @@ button:disabled {
     .conversation-message.assistant {
         margin-right: 4%;
     }
+    
     }
+/* ============================= */
+/* Agent Workflow                */
+/* ============================= */
+
+.agent-workflow {
+    margin-top: 24px;
+    padding: 20px;
+
+    border: 1px solid var(--border);
+    border-radius: 20px;
+
+    background:
+        rgba(255, 255, 255, 0.025);
+}
+
+.workflow-title {
+    margin-bottom: 16px;
+
+    color: white;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.workflow-canvas {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    overflow-x: auto;
+
+    padding: 8px 2px 12px;
+}
+
+.workflow-node {
+    min-width: 125px;
+
+    padding: 14px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(19, 38, 58, 0.95),
+            rgba(7, 17, 31, 0.95)
+        );
+
+    text-align: center;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.workflow-node:hover {
+    transform: translateY(-2px);
+
+    border-color:
+        rgba(103, 232, 249, 0.35);
+
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.workflow-node.active {
+    border-color:
+        rgba(103, 232, 249, 0.7);
+
+    box-shadow:
+        0 0 20px rgba(0, 168, 232, 0.18);
+}
+
+.workflow-node.completed {
+    border-color:
+        rgba(74, 222, 128, 0.45);
+}
+
+.workflow-icon {
+    font-size: 22px;
+
+    margin-bottom: 7px;
+}
+
+.workflow-node strong {
+    display: block;
+
+    color: #e2e8f0;
+
+    font-size: 12px;
+
+    margin-bottom: 4px;
+}
+
+.workflow-node small {
+    color: var(--muted);
+
+    font-size: 10px;
+}
+
+.workflow-arrow {
+    flex-shrink: 0;
+
+    color: #64748b;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.workflow-status {
+    margin-top: 12px;
+
+    color: var(--muted);
+
+    font-size: 11px;
+
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+
+    .agent-workflow {
+        padding: 15px;
+    }
+
+    .workflow-canvas {
+        justify-content: flex-start;
+    }
+
+    .workflow-node {
+        min-width: 110px;
+    }
+
+}
+
+
+
+
+
