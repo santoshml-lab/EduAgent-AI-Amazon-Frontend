@@ -446,3 +446,45 @@ button:disabled {
     font-size: 14px;
     line-height: 1.5;
 }
+.quick-actions {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.quick-title {
+    margin-bottom: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.quick-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+}
+
+.quick-button {
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
+    font-size: 12px;
+    text-align: left;
+    transition: 0.2s ease;
+}
+
+.quick-button:hover {
+    background: rgba(0, 168, 232, 0.10);
+    border-color: rgba(103, 232, 249, 0.3);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+
+    .quick-buttons {
+        grid-template-columns: 1fr;
+    }
+
+}
