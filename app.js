@@ -175,7 +175,8 @@ async function askAgent(prompt) {
         </div>
     `;
 
-    toolIndicator.textContent = "Agent is processing...";
+    toolIndicator.textContent =
+        "Agent is processing...";
 
     askButton.disabled = true;
 
@@ -195,12 +196,18 @@ async function askAgent(prompt) {
         );
 
         if (!response.ok) {
+
             throw new Error(
-                `Server error: ${response.status}`
+                `API request failed: ${response.status}`
             );
         }
 
         const data = await response.json();
+
+        console.log(
+            "EduAgent API response:",
+            data
+        );
 
         renderResponse(data);
 
@@ -211,7 +218,33 @@ async function askAgent(prompt) {
         const action =
             data.agent_result?.action || "general";
 
-        await runWorkflowAnimation(action);
+        try {
+
+            await runWorkflowAnimation(action);
+
+        } catch (workflowError) {
+
+            console.error(
+                "Workflow error:",
+                workflowError
+            );
+
+            /*
+             * The main AI response has already
+             * been received successfully.
+             * Therefore workflow errors should
+             * not make the whole request fail.
+             */
+
+            const workflow =
+                document.getElementById(
+                    "agent-workflow"
+                );
+
+            if (workflow) {
+                workflow.innerHTML = "";
+            }
+        }
 
         addConversationMessage(
             "You",
@@ -237,17 +270,20 @@ async function askAgent(prompt) {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "EduAgent request error:",
+            error
+        );
 
         responseBox.innerHTML = `
             <div class="response-error">
-                Something went wrong while connecting
-                to EduAgent AI.
+                Unable to connect to EduAgent AI.
+                Please try again.
             </div>
         `;
 
         toolIndicator.textContent =
-            "Connection error";
+            "API connection error";
 
     } finally {
 
@@ -256,6 +292,12 @@ async function askAgent(prompt) {
         userInput.focus();
     }
 }
+
+    
+        
+                
+            
+            
 
 
 /* ================================
