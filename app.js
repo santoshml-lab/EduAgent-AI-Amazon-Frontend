@@ -189,9 +189,11 @@ async function askAgent(prompt) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    message: prompt
-                })
+                
+                 body: JSON.stringify({
+    user_input: prompt
+})   
+                
             }
         );
 
