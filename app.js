@@ -44,6 +44,89 @@ root.innerHTML = `
     </main>
 `;
 
+
+function formatAgentResult(agentResult) {
+    if (!agentResult) {
+        return "EduAgent completed the request.";
+    }
+
+    const toolResult = agentResult.tool_result;
+
+    if (agentResult.action === "study_plan" && toolResult?.plan) {
+        let output = `
+            <h3>📚 ${toolResult.topic} — ${toolResult.days}-Day Study Plan</h3>
+        `;
+
+        toolResult.plan.forEach((day) => {
+            output += `
+                <div class="plan-day">
+                    <strong>Day ${day.day}</strong>
+                    <p>${day.focus}</p>
+                    <small>${day.task}</small>
+                </div>
+            `;
+        });
+
+        return output;
+    }
+
+    if (
+        agentResult.action === "learning_resources" &&
+        toolResult?.resources
+    ) {
+        let output = `
+            <h3>📖 Learning Resources for ${toolResult.topic}</h3>
+        `;
+
+        toolResult.resources.forEach((resource) => {
+            output += `
+                <div class="resource-item">
+                    <strong>${resource.title}</strong>
+                    <p>${resource.purpose}</p>
+                </div>
+            `;
+        });
+
+        return output;
+    }
+
+    if (agentResult.action === "calculator" && toolResult) {
+        if (toolResult.error) {
+            return `❌ ${toolResult.error}`;
+        }
+
+        return `
+            <h3>🧮 Calculator</h3>
+            <p>
+                <strong>${toolResult.expression}</strong>
+                = 
+                <strong>${toolResult.result}</strong>
+            </p>
+        `;
+    }
+
+    if (agentResult.message) {
+        return agentResult.message;
+    }
+
+    if (agentResult.response) {
+        try {
+            const parsedResponse = JSON.parse(agentResult.response);
+
+            return (
+                parsedResponse.response ||
+                parsedResponse.message ||
+                agentResult.response
+            );
+        } catch {
+            return agentResult.response;
+        }
+    }
+
+    return "EduAgent completed the request.";
+}
+
+
 document.getElementById("askButton").addEventListener("click", async () => {
     const input = document.getElementById("userInput");
     const response = document.getElementById("response");
@@ -77,15 +160,16 @@ document.getElementById("askButton").addEventListener("click", async () => {
 
         const data = await result.json();
 
-        response.textContent =
-            data.agent_result?.message ||
-            data.agent_result?.response ||
-            "EduAgent completed the request.";
+        response.innerHTML = formatAgentResult(
+            data.agent_result
+        );
 
     } catch (error) {
         console.error(error);
+
         response.textContent =
             "Unable to connect to EduAgent AI. Please try again.";
+
     } finally {
         button.disabled = false;
         button.textContent = "Ask EduAgent";
