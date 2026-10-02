@@ -74,7 +74,7 @@ root.innerHTML = `
             </div>
 
 
-            <!-- n8n-style Agent Workflow -->
+            <!-- Agent Workflow -->
 
             <div
                 class="agent-workflow"
@@ -443,15 +443,16 @@ function getWorkflowTool(action) {
 function createWorkflowNode(
     icon,
     title,
-    subtitle,
-    className = ""
+    subtitle
 ) {
 
     const node =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     node.className =
-        `workflow-node ${className}`;
+        "workflow-node pending";
 
     node.innerHTML = `
         <div class="workflow-icon">
@@ -474,7 +475,9 @@ function createWorkflowNode(
 function createWorkflowArrow() {
 
     const arrow =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     arrow.className =
         "workflow-arrow";
@@ -486,100 +489,226 @@ function createWorkflowArrow() {
 }
 
 
-function renderWorkflow(action) {
+function buildWorkflow(action) {
 
     const tool =
         getWorkflowTool(action);
+
+    const nodes = [
+
+        {
+            key: "request",
+            icon: "👤",
+            title: "User Request",
+            subtitle: "Input"
+        },
+
+        {
+            key: "brain",
+            icon: "🧠",
+            title: "AI Brain",
+            subtitle: "Intent"
+        },
+
+        {
+            key: "router",
+            icon: "🔀",
+            title: "Tool Router",
+            subtitle: "Decision"
+        },
+
+        {
+            key: "tool",
+            icon: tool.icon,
+            title: tool.title,
+            subtitle: tool.subtitle
+        },
+
+        {
+            key: "result",
+            icon: "📦",
+            title: "Tool Result",
+            subtitle: "Output"
+        },
+
+        {
+            key: "response",
+            icon: "✅",
+            title: "Response",
+            subtitle: "AI"
+        }
+
+    ];
 
     agentWorkflow.style.display =
         "block";
 
     workflowCanvas.innerHTML = "";
 
-    const requestNode =
-        createWorkflowNode(
-            "👤",
-            "User Request",
-            "Input",
-            "completed"
+    const nodeElements = [];
+
+    nodes.forEach(
+        (item, index) => {
+
+            const node =
+                createWorkflowNode(
+                    item.icon,
+                    item.title,
+                    item.subtitle
+                );
+
+            node.dataset.key =
+                item.key;
+
+            workflowCanvas.appendChild(
+                node
+            );
+
+            nodeElements.push(node);
+
+            if (
+                index <
+                nodes.length - 1
+            ) {
+
+                workflowCanvas.appendChild(
+                    createWorkflowArrow()
+                );
+
+            }
+
+        }
+    );
+
+    return nodeElements;
+}
+
+
+function setWorkflowNodeState(
+    node,
+    state
+) {
+
+    if (!node) {
+        return;
+    }
+
+    node.classList.remove(
+        "pending",
+        "running",
+        "completed"
+    );
+
+    node.classList.add(
+        state
+    );
+
+    const strong =
+        node.querySelector(
+            "strong"
         );
 
-    const brainNode =
-        createWorkflowNode(
-            "🧠",
-            "AI Brain",
-            "Intent",
-            "completed"
-        );
+    if (!strong) {
+        return;
+    }
 
-    const routerNode =
-        createWorkflowNode(
-            "🔀",
-            "Tool Router",
-            "Decision",
-            "completed"
-        );
+    const originalText =
+        node.dataset.title ||
+        strong.textContent;
 
-    const toolNode =
-        createWorkflowNode(
-            tool.icon,
-            tool.title,
-            tool.subtitle,
-            "completed"
-        );
+    node.dataset.title =
+        originalText;
 
-    const resultNode =
-        createWorkflowNode(
-            "📦",
-            "Tool Result",
-            "Output",
-            "completed"
-        );
+    if (state === "running") {
 
-    const responseNode =
-        createWorkflowNode(
-            "✅",
-            "Response",
-            "AI",
-            "completed"
-        );
+        strong.innerHTML =
+            `${originalText}
+            <span class="workflow-running">
+                ●
+            </span>`;
 
-    const nodes = [
+    } else if (
+        state === "completed"
+    ) {
 
-        requestNode,
+        strong.innerHTML =
+            `${originalText}
+            <span class="workflow-check">
+                ✓
+            </span>`;
 
-        createWorkflowArrow(),
+    } else {
 
-        brainNode,
+        strong.textContent =
+            originalText;
+    }
+}
 
-        createWorkflowArrow(),
 
-        routerNode,
+function sleep(ms) {
 
-        createWorkflowArrow(),
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                ms
+            )
+    );
+}
 
-        toolNode,
 
-        createWorkflowArrow(),
+async function runWorkflowAnimation(
+    action
+) {
 
-        resultNode,
+    const nodes =
+        buildWorkflow(action);
 
-        createWorkflowArrow(),
+    const names = [
 
-        responseNode
+        "Request received",
+
+        "Understanding user intent",
+
+        "Selecting tool",
+
+        "Executing tool",
+
+        "Processing tool result",
+
+        "Generating response"
 
     ];
 
-    nodes.forEach(node => {
 
-        workflowCanvas.appendChild(
-            node
+    for (
+        let index = 0;
+        index < nodes.length;
+        index++
+    ) {
+
+        const node =
+            nodes[index];
+
+        setWorkflowNodeState(
+            node,
+            "running"
         );
 
-    });
+        workflowStatus.textContent =
+            names[index];
+
+        await sleep(450);
+
+        setWorkflowNodeState(
+            node,
+            "completed"
+        );
+
+    }
 
     workflowStatus.textContent =
-        `Workflow completed using ${tool.title}.`;
+        "Workflow completed successfully.";
 }
 
 
@@ -595,25 +724,31 @@ function formatGeneralResponse(
         if (
             parsed.answer !== undefined
         ) {
+
             return String(
                 parsed.answer
             );
+
         }
 
         if (
             parsed.response !== undefined
         ) {
+
             return String(
                 parsed.response
             );
+
         }
 
         if (
             parsed.message !== undefined
         ) {
+
             return String(
                 parsed.message
             );
+
         }
 
         return JSON.stringify(
@@ -918,7 +1053,6 @@ function addConversationMessage(
 
 
     header.appendChild(name);
-
     header.appendChild(time);
 
 
@@ -935,17 +1069,12 @@ function addConversationMessage(
 
 
     message.appendChild(header);
-
     message.appendChild(body);
 
-    conversation.appendChild(
-        message
-    );
-
+    conversation.appendChild(message);
 
     conversation.scrollTop =
         conversation.scrollHeight;
-
 
     conversationArea.style.display =
         "block";
@@ -1107,11 +1236,6 @@ async function askEduAgent() {
         );
 
 
-        renderWorkflow(
-            result.action
-        );
-
-
         setToolIndicator(
             result.action
         );
@@ -1138,6 +1262,12 @@ async function askEduAgent() {
 
         assistantCircle.textContent =
             "AI";
+
+
+        await runWorkflowAnimation(
+            result.action
+        );
+
 
     } catch (error) {
 
@@ -1384,6 +1514,12 @@ voiceButton.addEventListener(
 
     }
 );
+
+
+
+
+
+
 
 
 
