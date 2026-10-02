@@ -58,6 +58,46 @@ root.innerHTML = `
                 Ready
             </div>
 
+            <div class="quick-actions">
+
+    <p class="quick-title">
+        Try asking EduAgent
+    </p>
+
+    <div class="quick-buttons">
+
+        <button
+            class="quick-button"
+            data-prompt="Create a 5 day study plan for Python"
+        >
+            📚 Study Plan
+        </button>
+
+        <button
+            class="quick-button"
+            data-prompt="What are some good resources to learn mathematics?"
+        >
+            📖 Learning Resources
+        </button>
+
+        <button
+            class="quick-button"
+            data-prompt="What is 25% of 800?"
+        >
+            🧮 Calculator
+        </button>
+
+        <button
+            class="quick-button"
+            data-prompt="Explain machine learning in simple words."
+        >
+            🤖 Explain Concept
+        </button>
+
+    </div>
+
+</div>
+
             <div id="response" class="response">
                 Ask me for a study plan, learning resources,
                 calculations, or an educational explanation.
