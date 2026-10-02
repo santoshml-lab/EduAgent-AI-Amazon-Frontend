@@ -959,6 +959,102 @@ button:disabled {
 
 }
 
+/* ============================= */
+/* Live Workflow Execution       */
+/* ============================= */
+
+.workflow-node.running {
+    border-color: var(--accent-light);
+
+    background:
+        rgba(0, 168, 232, 0.12);
+
+    box-shadow:
+        0 0 25px rgba(0, 168, 232, 0.25);
+
+    animation:
+        workflowPulse 1s infinite;
+}
+
+.workflow-node.completed {
+    border-color:
+        rgba(74, 222, 128, 0.45);
+
+    background:
+        rgba(74, 222, 128, 0.045);
+}
+
+.workflow-node.pending {
+    opacity: 0.45;
+}
+
+.workflow-node.running .workflow-icon {
+    animation:
+        workflowIconPulse 0.8s infinite;
+}
+
+.workflow-check {
+    display: inline-block;
+
+    margin-left: 4px;
+
+    color: var(--success);
+
+    font-size: 10px;
+}
+
+.workflow-running {
+    display: inline-block;
+
+    margin-left: 4px;
+
+    color: var(--accent-light);
+
+    font-size: 10px;
+
+    animation:
+        workflowDots 1.2s infinite;
+}
+
+@keyframes workflowPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+@keyframes workflowIconPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+}
+
+@keyframes workflowDots {
+
+    0% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.3;
+    }
+}
+
 
 
 
