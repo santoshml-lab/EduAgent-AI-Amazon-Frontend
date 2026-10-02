@@ -789,62 +789,140 @@ quickButtons.forEach(
 
 
 /* ==============================
-   VOICE SIMULATION
+   VOICE INPUT
 ================================ */
 
-voiceButton.addEventListener(
-    "click",
-    () => {
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
-        voiceButton.classList.add(
-            "listening"
-        );
+let recognition = null;
 
+if (SpeechRecognition) {
+
+    recognition = new SpeechRecognition();
+
+    recognition.lang = "en-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+
+        voiceButton.classList.add("listening");
 
         voiceStatus.textContent =
-            "Listening...";
-
+            "Listening... Speak now";
 
         setStatus(
             "Listening...",
             "#67e8f9"
         );
 
-
-        assistantCircle.textContent =
-            "🎙";
-
-
-        setTimeout(
-            () => {
-
-                voiceButton.classList.remove(
-                    "listening"
-                );
+        assistantCircle.textContent = "🎙";
+    };
 
 
-                voiceStatus.textContent =
-                    "Voice simulation ready";
+    recognition.onresult = (event) => {
 
+        const transcript =
+            event.results[0][0].transcript;
 
-                setStatus(
-                    "Ready to help",
-                    "#4ade80"
-                );
+        input.value = transcript;
 
+        voiceStatus.textContent =
+            "Voice captured";
 
-                assistantCircle.textContent =
-                    "AI";
-
-
-                input.focus();
-
-            },
-            1800
+        setStatus(
+            "Voice input ready",
+            "#4ade80"
         );
+
+        assistantCircle.textContent = "AI";
+
+        input.focus();
+    };
+
+
+    recognition.onerror = (event) => {
+
+        console.error(
+            "Speech recognition error:",
+            event.error
+        );
+
+        voiceStatus.textContent =
+            "Voice input unavailable";
+
+        setStatus(
+            "Voice input error",
+            "#f87171"
+        );
+
+        assistantCircle.textContent = "!";
+    };
+
+
+    recognition.onend = () => {
+
+        voiceButton.classList.remove(
+            "listening"
+        );
+
+        if (
+            voiceStatus.textContent ===
+            "Listening... Speak now"
+        ) {
+
+            voiceStatus.textContent =
+                "Tap to speak again";
+        }
+
+    };
+
+} else {
+
+    voiceButton.disabled = true;
+
+    voiceStatus.textContent =
+        "Voice input not supported in this browser";
+}
+
+
+voiceButton.addEventListener(
+    "click",
+    () => {
+
+        if (!recognition) {
+
+            voiceStatus.textContent =
+                "Voice input is not supported.";
+
+            return;
+        }
+
+        try {
+
+            recognition.start();
+
+        } catch (error) {
+
+            console.error(
+                "Voice start error:",
+                error
+            );
+
+        }
 
     }
 );
+   
+
+
+
+    
+
+
+   
 
 
 /* ==============================
