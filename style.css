@@ -1055,6 +1055,189 @@ button:disabled {
     }
 }
 
+/* ================================
+   Branching Agent Workflow
+================================ */
+
+.branch-workflow {
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.branch-workflow-title {
+    margin-bottom: 18px;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.branch-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.branch-node {
+    min-width: 125px;
+    padding: 13px 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(19, 38, 58, 0.95),
+            rgba(7, 17, 31, 0.95)
+        );
+    text-align: center;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.branch-node strong {
+    display: block;
+    color: #e2e8f0;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.branch-node small {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.branch-icon {
+    font-size: 21px;
+    margin-bottom: 6px;
+}
+
+.branch-arrow {
+    color: #64748b;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.branch-tools {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    position: relative;
+}
+
+.branch-tool {
+    flex: 1;
+    max-width: 145px;
+}
+
+.branch-tool-line {
+    width: 1px;
+    height: 18px;
+    background: #475569;
+    margin: 0 auto;
+}
+
+.branch-tool-arrow {
+    color: #64748b;
+    text-align: center;
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+/* Workflow states */
+
+.branch-node.pending {
+    opacity: 0.42;
+}
+
+.branch-node.running {
+    border-color: var(--accent-light);
+    background: rgba(0, 168, 232, 0.12);
+    box-shadow: 0 0 25px rgba(0, 168, 232, 0.25);
+    animation: branchPulse 1s infinite;
+}
+
+.branch-node.completed {
+    border-color: rgba(74, 222, 128, 0.5);
+    background: rgba(74, 222, 128, 0.045);
+}
+
+.branch-node.selected {
+    border-color: rgba(103, 232, 249, 0.7);
+    box-shadow: 0 0 20px rgba(0, 168, 232, 0.18);
+}
+
+.branch-check {
+    display: inline-block;
+    margin-left: 4px;
+    color: var(--success);
+    font-size: 10px;
+}
+
+.branch-running {
+    display: inline-block;
+    margin-left: 4px;
+    color: var(--accent-light);
+    font-size: 10px;
+    animation: branchDots 1.2s infinite;
+}
+
+.branch-status {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 11px;
+    text-align: center;
+}
+
+@keyframes branchPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+@keyframes branchDots {
+    0% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.3;
+    }
+}
+
+@media (max-width: 700px) {
+    .branch-tools {
+        flex-wrap: wrap;
+    }
+
+    .branch-tool {
+        flex: 0 0 calc(50% - 8px);
+        max-width: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .branch-tool {
+        flex: 0 0 100%;
+        max-width: 180px;
+    }
+}
+
 
 
 
