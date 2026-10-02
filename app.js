@@ -24,6 +24,21 @@ root.innerHTML = `
                 Ready to help
             </p>
 
+            <div class="voice-area">
+                <button
+                    id="voiceButton"
+                    class="voice-button"
+                    type="button"
+                    aria-label="Start voice input"
+                >
+                    🎙
+                </button>
+
+                <span id="voiceStatus">
+                    Tap to simulate voice input
+                </span>
+            </div>
+
             <div class="input-area">
 
                 <input
@@ -39,9 +54,23 @@ root.innerHTML = `
 
             </div>
 
+            <div id="toolIndicator" class="tool-indicator">
+                Ready
+            </div>
+
             <div id="response" class="response">
                 Ask me for a study plan, learning resources,
                 calculations, or an educational explanation.
+            </div>
+
+            <div class="conversation-area">
+                <button
+                    id="clearButton"
+                    class="clear-button"
+                    type="button"
+                >
+                    Clear Conversation
+                </button>
             </div>
 
         </section>
@@ -55,6 +84,12 @@ const response = document.getElementById("response");
 const status = document.getElementById("status");
 const assistantCircle = document.getElementById("assistantCircle");
 
+const voiceButton = document.getElementById("voiceButton");
+const voiceStatus = document.getElementById("voiceStatus");
+
+const toolIndicator = document.getElementById("toolIndicator");
+const clearButton = document.getElementById("clearButton");
+
 
 function setStatus(message, color = "") {
     status.textContent = message;
@@ -67,17 +102,44 @@ function setStatus(message, color = "") {
 }
 
 
+function setTool(message) {
+    toolIndicator.textContent = message;
+}
+
+
 function showThinkingState() {
+
     setStatus("Thinking...", "#facc15");
 
     assistantCircle.textContent = "...";
+
+    setTool("EduAgent is selecting a tool...");
 }
 
 
 function showReadyState() {
+
     setStatus("Ready to help", "#4ade80");
 
     assistantCircle.textContent = "AI";
+
+    setTool("Ready");
+}
+
+
+function updateToolIndicator(action) {
+
+    const toolNames = {
+        study_plan: "Using Study Plan Tool",
+        learning_resources: "Using Learning Resources Tool",
+        calculator: "Using Calculator Tool",
+        general: "Using EduAgent AI"
+    };
+
+    setTool(
+        toolNames[action] ||
+        "Processing request..."
+    );
 }
 
 
@@ -87,11 +149,9 @@ function formatAgentResult(agentResult) {
         return "EduAgent completed the request.";
     }
 
+
     const toolResult = agentResult.tool_result;
 
-    /*
-     * Study Plan
-     */
 
     if (
         agentResult.action === "study_plan" &&
@@ -105,9 +165,10 @@ function formatAgentResult(agentResult) {
             </h3>
 
             <div class="tool-label">
-                Tool: Study Plan
+                Study Plan Tool
             </div>
         `;
+
 
         toolResult.plan.forEach((day) => {
 
@@ -130,13 +191,10 @@ function formatAgentResult(agentResult) {
             `;
         });
 
+
         return output;
     }
 
-
-    /*
-     * Learning Resources
-     */
 
     if (
         agentResult.action === "learning_resources" &&
@@ -150,9 +208,10 @@ function formatAgentResult(agentResult) {
             </h3>
 
             <div class="tool-label">
-                Tool: Learning Resources
+                Learning Resources Tool
             </div>
         `;
+
 
         toolResult.resources.forEach((resource) => {
 
@@ -171,13 +230,10 @@ function formatAgentResult(agentResult) {
             `;
         });
 
+
         return output;
     }
 
-
-    /*
-     * Calculator
-     */
 
     if (
         agentResult.action === "calculator" &&
@@ -187,7 +243,9 @@ function formatAgentResult(agentResult) {
         if (toolResult.error) {
 
             return `
-                <h3>🧮 Calculator</h3>
+                <h3>
+                    🧮 Calculator
+                </h3>
 
                 <p>
                     ❌ ${toolResult.error}
@@ -195,13 +253,14 @@ function formatAgentResult(agentResult) {
             `;
         }
 
+
         return `
             <h3>
                 🧮 Calculator
             </h3>
 
             <div class="tool-label">
-                Tool: Calculator
+                Calculator Tool
             </div>
 
             <p>
@@ -218,10 +277,6 @@ function formatAgentResult(agentResult) {
         `;
     }
 
-
-    /*
-     * General AI response
-     */
 
     if (agentResult.response) {
 
@@ -257,6 +312,7 @@ async function askEduAgent() {
 
     const userInput = input.value.trim();
 
+
     if (!userInput) {
 
         response.textContent =
@@ -270,11 +326,13 @@ async function askEduAgent() {
 
     button.disabled = true;
     input.disabled = true;
+    voiceButton.disabled = true;
 
     button.textContent = "Thinking...";
 
     response.textContent =
         "EduAgent is processing your request...";
+
 
     showThinkingState();
 
@@ -298,7 +356,6 @@ async function askEduAgent() {
 
 
         if (!result.ok) {
-
             throw new Error(
                 `HTTP ${result.status}`
             );
@@ -307,11 +364,17 @@ async function askEduAgent() {
 
         const data = await result.json();
 
+        const agentResult =
+            data.agent_result;
+
+
+        updateToolIndicator(
+            agentResult?.action
+        );
+
 
         response.innerHTML =
-            formatAgentResult(
-                data.agent_result
-            );
+            formatAgentResult(agentResult);
 
 
         setStatus(
@@ -351,11 +414,14 @@ async function askEduAgent() {
 
         assistantCircle.textContent = "!";
 
+        setTool("Request failed");
+
 
     } finally {
 
         button.disabled = false;
         input.disabled = false;
+        voiceButton.disabled = false;
 
         button.textContent =
             "Ask EduAgent";
@@ -366,7 +432,53 @@ async function askEduAgent() {
 
 
 /*
- * Button click
+ * Simulated voice interaction
+ */
+
+voiceButton.addEventListener(
+    "click",
+    () => {
+
+        voiceButton.classList.add("listening");
+
+        voiceStatus.textContent =
+            "Listening...";
+
+        setStatus(
+            "Listening...",
+            "#67e8f9"
+        );
+
+        assistantCircle.textContent =
+            "🎙";
+
+
+        setTimeout(() => {
+
+            voiceButton.classList.remove(
+                "listening"
+            );
+
+            voiceStatus.textContent =
+                "Voice simulation ready";
+
+            setStatus(
+                "Ready to help",
+                "#4ade80"
+            );
+
+            assistantCircle.textContent =
+                "AI";
+
+            input.focus();
+
+        }, 1800);
+    }
+);
+
+
+/*
+ * Ask button
  */
 
 button.addEventListener(
@@ -387,5 +499,28 @@ input.addEventListener(
             askEduAgent();
         }
 
+    }
+);
+
+
+/*
+ * Clear conversation
+ */
+
+clearButton.addEventListener(
+    "click",
+    () => {
+
+        input.value = "";
+
+        response.textContent =
+            "Ask me for a study plan, learning resources, calculations, or an educational explanation.";
+
+        showReadyState();
+
+        voiceStatus.textContent =
+            "Tap to simulate voice input";
+
+        input.focus();
     }
 );
