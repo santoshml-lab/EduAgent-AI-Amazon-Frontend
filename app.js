@@ -1,129 +1,80 @@
-const API_URL =
-    "https://eduagent-ai-amazon.onrender.com";
+const API_URL = "https://eduagent-ai-amazon.onrender.com";
 
-const root =
-    document.getElementById("root");
+let conversationHistory = [];
+
+
+/* ================================
+   DOM Elements
+================================ */
+
+const root = document.getElementById("root");
+
+
+/* ================================
+   Main Application
+================================ */
 
 root.innerHTML = `
     <div class="app">
+
         <div class="card">
 
             <div class="badge">
-                AMAZON DEVELOPER HACKATHON 2026
+                Alexa+ Simulation
             </div>
 
             <h1>EduAgent AI</h1>
 
             <p class="subtitle">
-                Alexa+ Simulated Educational AI Experience
+                Your intelligent educational AI assistant
             </p>
 
-            <div
-                class="assistant-circle"
-                id="assistantCircle"
-            >
-                AI
+            <div class="assistant-circle">
+                <span>✦</span>
             </div>
 
-            <div
-                class="status"
-                id="status"
-            >
-                Ready
+            <div class="status">
+                <span class="status-dot"></span>
+                Ready to help
             </div>
 
             <div class="voice-area">
-
                 <button
+                    id="voice-button"
                     class="voice-button"
-                    id="voiceButton"
-                    type="button"
+                    aria-label="Start voice input"
                 >
-                    🎙
+                    🎙️
                 </button>
 
-                <span id="voiceStatus">
-                    Voice input
-                </span>
-
+                <p>Tap to speak</p>
             </div>
 
             <div class="input-area">
 
                 <input
-                    id="userInput"
+                    id="user-input"
                     type="text"
                     placeholder="Ask EduAgent anything..."
                     autocomplete="off"
                 >
 
-                <button
-                    id="askButton"
-                    type="button"
-                >
-                    Ask EduAgent
+                <button id="ask-button">
+                    Ask
                 </button>
 
             </div>
 
             <div
+                id="tool-indicator"
                 class="tool-indicator"
-                id="toolIndicator"
             >
                 No tool selected
             </div>
 
-
-            <!-- Agent Workflow -->
-
-            <div
-                class="agent-workflow"
-                id="agentWorkflow"
-                style="display:none;"
-            >
-
-                <div class="workflow-title">
-                    Agent Workflow
-                </div>
-
-                <div
-                    class="workflow-canvas"
-                    id="workflowCanvas"
-                ></div>
-
-                <div
-                    class="workflow-status"
-                    id="workflowStatus"
-                >
-                    Waiting for request...
-                </div>
-
-            </div>
-
-
-            <!-- Agent Activity -->
-
-            <div
-                class="agent-activity"
-                id="agentActivity"
-                style="display:none;"
-            >
-
-                <div class="activity-title">
-                    Agent Activity
-                </div>
-
-                <div
-                    class="activity-list"
-                    id="activityList"
-                ></div>
-
-            </div>
-
-
             <div class="quick-actions">
 
-                <div class="quick-title">
+                <div class="quick-actions-title">
                     Quick Actions
                 </div>
 
@@ -133,458 +84,712 @@ root.innerHTML = `
                         class="quick-button"
                         data-prompt="Create a 5 day study plan for Python"
                     >
-                        📚 5-day Python study plan
+                        📚 Study Plan
                     </button>
 
                     <button
                         class="quick-button"
                         data-prompt="What are some good resources to learn mathematics?"
                     >
-                        📖 Mathematics resources
+                        📖 Resources
                     </button>
 
                     <button
                         class="quick-button"
-                        data-prompt="What is 25% of 800?"
+                        data-prompt="What is 25% of 600?"
                     >
-                        🧮 Calculate 25% of 800
+                        🧮 Calculator
                     </button>
 
                     <button
                         class="quick-button"
                         data-prompt="Explain machine learning in simple words."
                     >
-                        🧠 Explain machine learning
+                        🤖 Ask AI
                     </button>
 
                 </div>
 
             </div>
 
+            <div id="response" class="response"></div>
 
             <div
-                class="response"
-                id="response"
-            >
-                <p>
-                    Ask EduAgent a question to begin.
-                </p>
-            </div>
-
-
-            <div
-                class="conversation-area"
-                id="conversationArea"
-                style="display:none;"
-            >
-
-                <button
-                    class="clear-button"
-                    id="clearButton"
-                    type="button"
-                >
-                    Clear Conversation
-                </button>
-
-            </div>
-
-
-            <div
-                class="conversation"
-                id="conversation"
+                id="agent-activity"
+                class="agent-activity"
             ></div>
 
+            <div
+                id="agent-workflow"
+            ></div>
+
+            <div
+                id="conversation"
+                class="conversation"
+            ></div>
+
+            <button
+                id="clear-button"
+                class="clear-button"
+            >
+                Clear Conversation
+            </button>
+
         </div>
+
     </div>
 `;
 
 
-const input =
-    document.getElementById("userInput");
+/* ================================
+   Element References
+================================ */
 
-const askButton =
-    document.getElementById("askButton");
-
-const responseBox =
-    document.getElementById("response");
-
-const statusText =
-    document.getElementById("status");
-
-const assistantCircle =
-    document.getElementById("assistantCircle");
-
-const toolIndicator =
-    document.getElementById("toolIndicator");
-
-const conversation =
-    document.getElementById("conversation");
-
-const conversationArea =
-    document.getElementById("conversationArea");
-
-const clearButton =
-    document.getElementById("clearButton");
-
-const voiceButton =
-    document.getElementById("voiceButton");
-
-const voiceStatus =
-    document.getElementById("voiceStatus");
-
-const agentActivity =
-    document.getElementById("agentActivity");
-
-const activityList =
-    document.getElementById("activityList");
-
-const agentWorkflow =
-    document.getElementById("agentWorkflow");
-
-const workflowCanvas =
-    document.getElementById("workflowCanvas");
-
-const workflowStatus =
-    document.getElementById("workflowStatus");
+const userInput = document.getElementById("user-input");
+const askButton = document.getElementById("ask-button");
+const voiceButton = document.getElementById("voice-button");
+const responseBox = document.getElementById("response");
+const toolIndicator = document.getElementById("tool-indicator");
+const conversationBox = document.getElementById("conversation");
+const clearButton = document.getElementById("clear-button");
+const agentActivity = document.getElementById("agent-activity");
 
 
-function setStatus(
-    message,
-    color = "#4ade80"
-) {
+/* ================================
+   Ask Agent
+================================ */
 
-    statusText.textContent =
-        message;
+async function askAgent(prompt) {
 
-    statusText.style.color =
-        color;
+    if (!prompt || !prompt.trim()) {
+        return;
+    }
+
+    prompt = prompt.trim();
+
+    userInput.value = prompt;
+
+    responseBox.innerHTML = `
+        <div class="response-loading">
+            Thinking...
+        </div>
+    `;
+
+    toolIndicator.textContent = "Agent is processing...";
+
+    askButton.disabled = true;
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/alexa-simulate`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: prompt
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Server error: ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+
+        renderResponse(data);
+
+        renderAgentActivity(
+            data.agent_result?.trace || []
+        );
+
+        const action =
+            data.agent_result?.action || "general";
+
+        await runWorkflowAnimation(action);
+
+        addConversationMessage(
+            "You",
+            prompt,
+            "user"
+        );
+
+        addConversationMessage(
+            "EduAgent AI",
+            getResponseText(data),
+            "assistant"
+        );
+
+        conversationHistory.push({
+            role: "user",
+            content: prompt
+        });
+
+        conversationHistory.push({
+            role: "assistant",
+            content: getResponseText(data)
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        responseBox.innerHTML = `
+            <div class="response-error">
+                Something went wrong while connecting
+                to EduAgent AI.
+            </div>
+        `;
+
+        toolIndicator.textContent =
+            "Connection error";
+
+    } finally {
+
+        askButton.disabled = false;
+
+        userInput.focus();
+    }
 }
 
 
-function setToolIndicator(action) {
+/* ================================
+   Response Renderer
+================================ */
 
-    const labels = {
+function renderResponse(data) {
 
-        study_plan:
-            "📚 Study Plan Tool",
+    const agentResult = data.agent_result || {};
 
-        learning_resources:
-            "📖 Learning Resources Tool",
+    const action =
+        agentResult.action || "general";
 
-        calculator:
-            "🧮 Calculator Tool",
-
-        general:
-            "🧠 General AI Reasoning"
-
-    };
+    const tool =
+        agentResult.tool ||
+        action;
 
     toolIndicator.textContent =
-        labels[action] ||
-        "No tool selected";
+        `Tool: ${formatAction(tool)}`;
+
+    let html = "";
+
+    if (action === "study_plan") {
+
+        html += `
+            <div class="tool-label">
+                📚 Study Plan
+            </div>
+        `;
+
+        if (agentResult.topic) {
+            html += `
+                <h3>
+                    ${escapeHTML(agentResult.topic)}
+                </h3>
+            `;
+        }
+
+        if (agentResult.days) {
+            html += `
+                <p>
+                    ${agentResult.days}-day study plan
+                </p>
+            `;
+        }
+
+        if (Array.isArray(agentResult.plan)) {
+
+            agentResult.plan.forEach(day => {
+
+                html += `
+                    <div class="plan-day">
+
+                        <strong>
+                            Day ${day.day}
+                        </strong>
+
+                        <div>
+                            ${escapeHTML(day.focus || "")}
+                        </div>
+
+                        <small>
+                            ${escapeHTML(day.task || "")}
+                        </small>
+
+                    </div>
+                `;
+
+            });
+        }
+
+    } else if (action === "learning_resources") {
+
+        html += `
+            <div class="tool-label">
+                📖 Learning Resources
+            </div>
+        `;
+
+        if (agentResult.topic) {
+            html += `
+                <h3>
+                    ${escapeHTML(agentResult.topic)}
+                </h3>
+            `;
+        }
+
+        if (Array.isArray(agentResult.resources)) {
+
+            agentResult.resources.forEach(resource => {
+
+                html += `
+                    <div class="resource-item">
+
+                        <strong>
+                            ${escapeHTML(resource.title || "")}
+                        </strong>
+
+                        <p>
+                            ${escapeHTML(resource.purpose || "")}
+                        </p>
+
+                    </div>
+                `;
+
+            });
+        }
+
+    } else if (action === "calculator") {
+
+        html += `
+            <div class="tool-label">
+                🧮 Calculator
+            </div>
+        `;
+
+        if (agentResult.expression) {
+
+            html += `
+                <p>
+                    <strong>
+                        Expression:
+                    </strong>
+
+                    ${escapeHTML(
+                        agentResult.expression
+                    )}
+                </p>
+            `;
+        }
+
+        if (
+            agentResult.result !== undefined &&
+            agentResult.result !== null
+        ) {
+
+            html += `
+                <div class="calculator-result">
+                    ${escapeHTML(
+                        String(agentResult.result)
+                    )}
+                </div>
+            `;
+        }
+
+    } else {
+
+        html += `
+            <div class="tool-label">
+                🤖 AI Response
+            </div>
+        `;
+
+        html += `
+            <p>
+                ${escapeHTML(
+                    getResponseText(data)
+                )}
+            </p>
+        `;
+    }
+
+    responseBox.innerHTML = html;
 }
 
 
-function getActivityIcon(stage) {
+/* ================================
+   Get Response Text
+================================ */
 
-    const icons = {
+function getResponseText(data) {
 
-        request: "👤",
+    const agentResult =
+        data.agent_result || {};
 
-        intent_detection: "🧠",
+    if (agentResult.response) {
 
-        tool_selection: "🔧",
+        if (
+            typeof agentResult.response ===
+            "string"
+        ) {
+            return agentResult.response;
+        }
 
-        tool_execution: "⚙️",
+        if (
+            typeof agentResult.response ===
+            "object"
+        ) {
+            return (
+                agentResult.response.answer ||
+                agentResult.response.message ||
+                JSON.stringify(
+                    agentResult.response
+                )
+            );
+        }
+    }
 
-        reasoning: "🧠",
+    if (agentResult.answer) {
+        return agentResult.answer;
+    }
 
-        response: "✅",
+    if (agentResult.message) {
+        return agentResult.message;
+    }
 
-        error: "❌"
+    if (agentResult.result !== undefined) {
+        return String(agentResult.result);
+    }
 
-    };
-
-    return icons[stage] || "•";
+    return "Response generated successfully.";
 }
 
 
-function formatActivityMessage(item) {
+/* ================================
+   Agent Activity
+================================ */
 
-    const messages = {
+function renderAgentActivity(trace) {
 
-        request:
-            "Understanding your request",
+    if (!agentActivity) {
+        return;
+    }
 
-        intent_detection:
-            "Detecting user intent",
+    if (!Array.isArray(trace) || trace.length === 0) {
 
-        tool_selection:
-            "Selecting the appropriate tool",
-
-        tool_execution:
-            "Running the selected tool",
-
-        reasoning:
-            "Generating an educational response",
-
-        response:
-            "Response completed",
-
-        error:
-            "An error occurred"
-
-    };
-
-    return (
-        messages[item.stage] ||
-        item.message ||
-        "Processing request"
-    );
-}
-
-
-function renderTrace(trace) {
-
-    if (
-        !Array.isArray(trace) ||
-        trace.length === 0
-    ) {
-
-        agentActivity.style.display =
-            "none";
+        agentActivity.innerHTML = "";
 
         return;
     }
 
-    agentActivity.style.display =
-        "block";
+    let html = `
+        <div class="activity-title">
+            Agent Activity
+        </div>
+    `;
 
-    activityList.innerHTML = "";
+    trace.forEach(item => {
 
-    trace.forEach(
-        (item, index) => {
+        let icon = "•";
 
-            const activity =
-                document.createElement(
-                    "div"
-                );
+        if (item.step === 1) {
+            icon = "👤";
+        } else if (item.step === 2) {
+            icon = "🧠";
+        } else if (item.step === 3) {
+            icon = "🔧";
+        } else if (item.step === 4) {
+            icon = "⚙️";
+        } else if (item.step === 5) {
+            icon = "✅";
+        }
 
-            activity.className =
-                "activity-item";
+        html += `
+            <div class="activity-item">
 
-            activity.innerHTML = `
                 <div class="activity-icon">
-                    ${getActivityIcon(item.stage)}
+                    ${icon}
                 </div>
 
                 <div class="activity-content">
 
                     <strong>
-                        ${formatActivityMessage(item)}
+                        ${escapeHTML(
+                            getActivityTitle(
+                                item.stage
+                            )
+                        )}
                     </strong>
 
                     <small>
-                        Step ${item.step}
+                        ${escapeHTML(
+                            item.message || ""
+                        )}
                     </small>
 
                 </div>
-            `;
 
-            activity.style.animationDelay =
-                `${index * 0.08}s`;
+            </div>
+        `;
 
-            activityList.appendChild(
-                activity
-            );
+    });
 
-        }
-    );
+    agentActivity.innerHTML = html;
 }
 
 
-function getWorkflowTool(action) {
+function getActivityTitle(stage) {
 
-    const tools = {
-
-        study_plan: {
-            icon: "📚",
-            title: "Study Plan",
-            subtitle: "Tool"
-        },
-
-        learning_resources: {
-            icon: "📖",
-            title: "Resources",
-            subtitle: "Tool"
-        },
-
-        calculator: {
-            icon: "🧮",
-            title: "Calculator",
-            subtitle: "Tool"
-        },
-
-        general: {
-            icon: "🧠",
-            title: "AI Response",
-            subtitle: "Reasoning"
-        }
-
+    const titles = {
+        request: "Understanding your request",
+        intent_detection: "Detecting user intent",
+        tool_selection: "Selecting the appropriate tool",
+        tool_execution: "Running the selected tool",
+        response: "Response completed"
     };
 
-    return (
-        tools[action] ||
-        tools.general
-    );
+    return titles[stage] || "Agent processing";
 }
 
 
-function createWorkflowNode(
-    icon,
-    title,
-    subtitle
-) {
-
-    const node =
-        document.createElement(
-            "div"
-        );
-
-    node.className =
-        "workflow-node pending";
-
-    node.innerHTML = `
-        <div class="workflow-icon">
-            ${icon}
-        </div>
-
-        <strong>
-            ${title}
-        </strong>
-
-        <small>
-            ${subtitle}
-        </small>
-    `;
-
-    return node;
-}
-
-
-function createWorkflowArrow() {
-
-    const arrow =
-        document.createElement(
-            "div"
-        );
-
-    arrow.className =
-        "workflow-arrow";
-
-    arrow.textContent =
-        "→";
-
-    return arrow;
-}
-
+/* ================================
+   Branching Workflow
+================================ */
 
 function buildWorkflow(action) {
 
-    const tool =
-        getWorkflowTool(action);
+    const workflow =
+        document.getElementById(
+            "agent-workflow"
+        );
 
-    const nodes = [
+    if (!workflow) {
+        return;
+    }
 
-        {
-            key: "request",
-            icon: "👤",
-            title: "User Request",
-            subtitle: "Input"
-        },
+    let selectedNode = "general";
 
-        {
-            key: "brain",
-            icon: "🧠",
-            title: "AI Brain",
-            subtitle: "Intent"
-        },
+    if (action === "study_plan") {
+        selectedNode = "study_plan";
+    } else if (action === "calculator") {
+        selectedNode = "calculator";
+    } else if (action === "learning_resources") {
+        selectedNode = "learning_resources";
+    }
 
-        {
-            key: "router",
-            icon: "🔀",
-            title: "Tool Router",
-            subtitle: "Decision"
-        },
+    workflow.innerHTML = `
+        <div class="branch-workflow">
 
-        {
-            key: "tool",
-            icon: tool.icon,
-            title: tool.title,
-            subtitle: tool.subtitle
-        },
+            <div class="branch-workflow-title">
+                Agent Workflow
+            </div>
 
-        {
-            key: "result",
-            icon: "📦",
-            title: "Tool Result",
-            subtitle: "Output"
-        },
+            <div class="branch-main">
 
-        {
-            key: "response",
-            icon: "✅",
-            title: "Response",
-            subtitle: "AI"
-        }
+                <div
+                    class="branch-node pending"
+                    data-branch-node="request"
+                >
+                    <div class="branch-icon">
+                        👤
+                    </div>
 
-    ];
+                    <strong>
+                        User Request
+                    </strong>
 
-    agentWorkflow.style.display =
-        "block";
+                    <small>
+                        Input received
+                    </small>
+                </div>
 
-    workflowCanvas.innerHTML = "";
+                <div class="branch-arrow">
+                    ↓
+                </div>
 
-    const nodeElements = [];
+                <div
+                    class="branch-node pending"
+                    data-branch-node="brain"
+                >
+                    <div class="branch-icon">
+                        🧠
+                    </div>
 
-    nodes.forEach(
-        (item, index) => {
+                    <strong>
+                        AI Brain
+                    </strong>
 
-            const node =
-                createWorkflowNode(
-                    item.icon,
-                    item.title,
-                    item.subtitle
-                );
+                    <small>
+                        Understand request
+                    </small>
+                </div>
 
-            node.dataset.key =
-                item.key;
+                <div class="branch-arrow">
+                    ↓
+                </div>
 
-            workflowCanvas.appendChild(
-                node
-            );
+                <div
+                    class="branch-node pending"
+                    data-branch-node="router"
+                >
+                    <div class="branch-icon">
+                        🔀
+                    </div>
 
-            nodeElements.push(node);
+                    <strong>
+                        Tool Router
+                    </strong>
 
-            if (
-                index <
-                nodes.length - 1
-            ) {
+                    <small>
+                        Select action
+                    </small>
+                </div>
 
-                workflowCanvas.appendChild(
-                    createWorkflowArrow()
-                );
+                <div class="branch-arrow">
+                    ↓
+                </div>
 
-            }
+                <div class="branch-tools">
 
-        }
-    );
+                    ${createBranchTool(
+                        "study_plan",
+                        "📚",
+                        "Study Plan",
+                        "Create learning plan"
+                    )}
 
-    return nodeElements;
+                    ${createBranchTool(
+                        "calculator",
+                        "🧮",
+                        "Calculator",
+                        "Calculate result"
+                    )}
+
+                    ${createBranchTool(
+                        "learning_resources",
+                        "📖",
+                        "Resources",
+                        "Learning resources"
+                    )}
+
+                    ${createBranchTool(
+                        "general",
+                        "🤖",
+                        "General AI",
+                        "Generate response"
+                    )}
+
+                </div>
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div
+                    class="branch-node pending"
+                    data-branch-node="result"
+                >
+                    <div class="branch-icon">
+                        📦
+                    </div>
+
+                    <strong>
+                        Tool Result
+                    </strong>
+
+                    <small>
+                        Process result
+                    </small>
+                </div>
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div
+                    class="branch-node pending"
+                    data-branch-node="response"
+                >
+                    <div class="branch-icon">
+                        ✅
+                    </div>
+
+                    <strong>
+                        Response
+                    </strong>
+
+                    <small>
+                        Answer delivered
+                    </small>
+                </div>
+
+                <div
+                    class="branch-status"
+                    id="branch-workflow-status"
+                >
+                    Waiting for agent execution...
+                </div>
+
+            </div>
+
+        </div>
+    `;
+
+    const selected =
+        document.querySelector(
+            `[data-branch-node="${selectedNode}"]`
+        );
+
+    if (selected) {
+        selected.classList.add("selected");
+    }
 }
 
 
-function setWorkflowNodeState(
+function createBranchTool(
+    node,
+    icon,
+    title,
+    description
+) {
+
+    return `
+        <div class="branch-tool">
+
+            <div class="branch-tool-line"></div>
+
+            <div
+                class="branch-node pending"
+                data-branch-node="${node}"
+            >
+                <div class="branch-icon">
+                    ${icon}
+                </div>
+
+                <strong>
+                    ${title}
+                </strong>
+
+                <small>
+                    ${description}
+                </small>
+            </div>
+
+            <div class="branch-tool-arrow">
+                ↘
+            </div>
+
+        </div>
+    `;
+}
+
+
+function setBranchNodeState(
     node,
     state
 ) {
@@ -599,61 +804,39 @@ function setWorkflowNodeState(
         "completed"
     );
 
-    node.classList.add(
-        state
-    );
+    node.classList.add(state);
 
     const strong =
-        node.querySelector(
-            "strong"
-        );
+        node.querySelector("strong");
 
     if (!strong) {
         return;
     }
 
-    const originalText =
-        node.dataset.title ||
-        strong.textContent;
+    const oldStatus =
+        node.querySelector(
+            ".branch-check, .branch-running"
+        );
 
-    node.dataset.title =
-        originalText;
+    if (oldStatus) {
+        oldStatus.remove();
+    }
+
+    if (state === "completed") {
+
+        strong.insertAdjacentHTML(
+            "beforeend",
+            `<span class="branch-check">✓</span>`
+        );
+    }
 
     if (state === "running") {
 
-        strong.innerHTML =
-            `${originalText}
-            <span class="workflow-running">
-                ●
-            </span>`;
-
-    } else if (
-        state === "completed"
-    ) {
-
-        strong.innerHTML =
-            `${originalText}
-            <span class="workflow-check">
-                ✓
-            </span>`;
-
-    } else {
-
-        strong.textContent =
-            originalText;
+        strong.insertAdjacentHTML(
+            "beforeend",
+            `<span class="branch-running">●</span>`
+        );
     }
-}
-
-
-function sleep(ms) {
-
-    return new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                ms
-            )
-    );
 }
 
 
@@ -661,833 +844,318 @@ async function runWorkflowAnimation(
     action
 ) {
 
-    const nodes =
-        buildWorkflow(action);
+    buildWorkflow(action);
 
-    const names = [
+    const status =
+        document.getElementById(
+            "branch-workflow-status"
+        );
 
-        "Request received",
+    let selectedNode = "general";
 
-        "Understanding user intent",
+    if (action === "study_plan") {
+        selectedNode = "study_plan";
+    } else if (action === "calculator") {
+        selectedNode = "calculator";
+    } else if (
+        action === "learning_resources"
+    ) {
+        selectedNode = "learning_resources";
+    }
 
-        "Selecting tool",
+    const steps = [
+        {
+            node: "request",
+            message:
+                "Receiving user request..."
+        },
 
-        "Executing tool",
+        {
+            node: "brain",
+            message:
+                "Understanding the request..."
+        },
 
-        "Processing tool result",
+        {
+            node: "router",
+            message:
+                "Routing request to the appropriate tool..."
+        },
 
-        "Generating response"
+        {
+            node: selectedNode,
+            message:
+                `Running ${getWorkflowToolName(
+                    selectedNode
+                )}...`
+        },
 
+        {
+            node: "result",
+            message:
+                "Processing tool result..."
+        },
+
+        {
+            node: "response",
+            message:
+                "Generating final response..."
+        }
     ];
 
-
-    for (
-        let index = 0;
-        index < nodes.length;
-        index++
-    ) {
+    for (const step of steps) {
 
         const node =
-            nodes[index];
+            document.querySelector(
+                `[data-branch-node="${step.node}"]`
+            );
 
-        setWorkflowNodeState(
+        if (!node) {
+            continue;
+        }
+
+        setBranchNodeState(
             node,
             "running"
         );
 
-        workflowStatus.textContent =
-            names[index];
+        if (status) {
+            status.textContent =
+                step.message;
+        }
 
-        await sleep(450);
+        await delay(500);
 
-        setWorkflowNodeState(
+        setBranchNodeState(
             node,
             "completed"
         );
-
     }
 
-    workflowStatus.textContent =
-        "Workflow completed successfully.";
-}
+    if (status) {
 
-
-function formatGeneralResponse(
-    response
-) {
-
-    try {
-
-        const parsed =
-            JSON.parse(response);
-
-        if (
-            parsed.answer !== undefined
-        ) {
-
-            return String(
-                parsed.answer
-            );
-
-        }
-
-        if (
-            parsed.response !== undefined
-        ) {
-
-            return String(
-                parsed.response
-            );
-
-        }
-
-        if (
-            parsed.message !== undefined
-        ) {
-
-            return String(
-                parsed.message
-            );
-
-        }
-
-        return JSON.stringify(
-            parsed,
-            null,
-            2
-        );
-
-    } catch {
-
-        return response;
-
+        status.textContent =
+            `Workflow completed successfully • ${getWorkflowToolName(
+                selectedNode
+            )}`;
     }
 }
 
 
-function renderResponse(data) {
-
-    responseBox.innerHTML = "";
-
-
-    if (
-        data.action ===
-        "study_plan"
-    ) {
-
-        const title =
-            document.createElement(
-                "h3"
-            );
-
-        title.textContent =
-            `${data.days}-Day Study Plan: ${data.topic}`;
-
-        responseBox.appendChild(
-            title
-        );
-
-
-        const label =
-            document.createElement(
-                "div"
-            );
-
-        label.className =
-            "tool-label";
-
-        label.textContent =
-            "Study Plan Tool";
-
-        responseBox.appendChild(
-            label
-        );
-
-
-        const plan =
-            data.tool_result?.plan ||
-            [];
-
-
-        plan.forEach(day => {
-
-            const dayBox =
-                document.createElement(
-                    "div"
-                );
-
-            dayBox.className =
-                "plan-day";
-
-            dayBox.innerHTML = `
-                <strong>
-                    Day ${day.day}
-                </strong>
-
-                <p>
-                    ${day.focus}
-                </p>
-
-                <small>
-                    ${day.task}
-                </small>
-            `;
-
-            responseBox.appendChild(
-                dayBox
-            );
-
-        });
-
-        return;
-    }
-
-
-    if (
-        data.action ===
-        "learning_resources"
-    ) {
-
-        const title =
-            document.createElement(
-                "h3"
-            );
-
-        title.textContent =
-            `Learning Resources: ${data.topic}`;
-
-        responseBox.appendChild(
-            title
-        );
-
-
-        const label =
-            document.createElement(
-                "div"
-            );
-
-        label.className =
-            "tool-label";
-
-        label.textContent =
-            "Learning Resources Tool";
-
-        responseBox.appendChild(
-            label
-        );
-
-
-        const resources =
-            data.tool_result?.resources ||
-            [];
-
-
-        resources.forEach(
-            resource => {
-
-                const item =
-                    document.createElement(
-                        "div"
-                    );
-
-                item.className =
-                    "resource-item";
-
-                item.innerHTML = `
-                    <strong>
-                        ${resource.title}
-                    </strong>
-
-                    <p>
-                        ${resource.purpose}
-                    </p>
-                `;
-
-                responseBox.appendChild(
-                    item
-                );
-
-            }
-        );
-
-        return;
-    }
-
-
-    if (
-        data.action ===
-        "calculator"
-    ) {
-
-        const title =
-            document.createElement(
-                "h3"
-            );
-
-        title.textContent =
-            "Calculation Result";
-
-        responseBox.appendChild(
-            title
-        );
-
-
-        const label =
-            document.createElement(
-                "div"
-            );
-
-        label.className =
-            "tool-label";
-
-        label.textContent =
-            "Calculator Tool";
-
-        responseBox.appendChild(
-            label
-        );
-
-
-        const result =
-            data.tool_result?.result ??
-            data.result;
-
-
-        const expression =
-            data.tool_result?.expression ??
-            data.expression;
-
-
-        const paragraph =
-            document.createElement(
-                "p"
-            );
-
-        paragraph.innerHTML =
-            `<strong>${expression}</strong> = ${result}`;
-
-        responseBox.appendChild(
-            paragraph
-        );
-
-        return;
-    }
-
-
-    const title =
-        document.createElement(
-            "h3"
-        );
-
-    title.textContent =
-        "EduAgent AI";
-
-    responseBox.appendChild(
-        title
-    );
-
-
-    const content =
-        document.createElement(
-            "p"
-        );
-
-    content.textContent =
-        formatGeneralResponse(
-            data.response || ""
-        );
-
-    responseBox.appendChild(
-        content
-    );
+function getWorkflowToolName(node) {
+
+    const names = {
+        study_plan: "Study Plan Tool",
+        calculator: "Calculator Tool",
+        learning_resources: "Resources Tool",
+        general: "General AI"
+    };
+
+    return names[node] || "Agent";
 }
 
+
+/* ================================
+   Conversation
+================================ */
 
 function addConversationMessage(
-    role,
-    content
+    sender,
+    message,
+    type
 ) {
 
-    const message =
-        document.createElement(
-            "div"
-        );
+    if (!conversationBox) {
+        return;
+    }
 
-    message.className =
-        `conversation-message ${role}`;
+    const wrapper =
+        document.createElement("div");
 
+    wrapper.className =
+        `conversation-message ${type}`;
 
     const header =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     header.className =
         "message-header";
 
+    header.textContent =
+        sender;
 
-    const name =
-        document.createElement(
-            "strong"
-        );
+    const content =
+        document.createElement("div");
 
-    name.textContent =
-        role === "user"
-            ? "You"
-            : "EduAgent AI";
-
-
-    const time =
-        document.createElement(
-            "small"
-        );
-
-    time.textContent =
-        new Date().toLocaleTimeString(
-            [],
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
-
-
-    header.appendChild(name);
-    header.appendChild(time);
-
-
-    const body =
-        document.createElement(
-            "div"
-        );
-
-    body.className =
+    content.className =
         "message-content";
 
-    body.textContent =
-        content;
+    content.textContent =
+        message;
 
+    wrapper.appendChild(header);
+    wrapper.appendChild(content);
 
-    message.appendChild(header);
-    message.appendChild(body);
+    conversationBox.appendChild(
+        wrapper
+    );
 
-    conversation.appendChild(message);
-
-    conversation.scrollTop =
-        conversation.scrollHeight;
-
-    conversationArea.style.display =
-        "block";
+    conversationBox.scrollTop =
+        conversationBox.scrollHeight;
 }
 
 
-function getConversationText(
-    data
-) {
-
-    if (
-        data.action ===
-        "calculator"
-    ) {
-
-        const result =
-            data.tool_result?.result ??
-            data.result;
-
-        return `Result: ${result}`;
-    }
-
-
-    if (
-        data.action ===
-        "study_plan"
-    ) {
-
-        return (
-            data.tool_result?.message ||
-            "Study plan created."
-        );
-    }
-
-
-    if (
-        data.action ===
-        "learning_resources"
-    ) {
-
-        return (
-            `Learning resources prepared for ${data.topic}.`
-        );
-    }
-
-
-    return formatGeneralResponse(
-        data.response || ""
-    );
-}
-
-
-async function askEduAgent() {
-
-    const userInput =
-        input.value.trim();
-
-
-    if (!userInput) {
-        return;
-    }
-
-
-    addConversationMessage(
-        "user",
-        userInput
-    );
-
-
-    askButton.disabled =
-        true;
-
-    input.disabled =
-        true;
-
-
-    setStatus(
-        "EduAgent is thinking...",
-        "#67e8f9"
-    );
-
-
-    assistantCircle.textContent =
-        "•••";
-
-
-    toolIndicator.textContent =
-        "Analyzing request...";
-
-
-    agentActivity.style.display =
-        "none";
-
-    agentWorkflow.style.display =
-        "none";
-
-
-    activityList.innerHTML = "";
-
-    workflowCanvas.innerHTML = "";
-
-
-    responseBox.innerHTML = `
-        <p>
-            Processing your request...
-        </p>
-    `;
-
-
-    try {
-
-        const response =
-            await fetch(
-                `${API_URL}/alexa-simulate`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-                        user_input:
-                            userInput
-                    })
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                `HTTP ${response.status}`
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        const result =
-            data.agent_result;
-
-
-        if (!result) {
-
-            throw new Error(
-                "Invalid agent response."
-            );
-
-        }
-
-
-        renderTrace(
-            result.trace
-        );
-
-
-        setToolIndicator(
-            result.action
-        );
-
-
-        renderResponse(
-            result
-        );
-
-
-        addConversationMessage(
-            "assistant",
-            getConversationText(
-                result
-            )
-        );
-
-
-        setStatus(
-            "Ready",
-            "#4ade80"
-        );
-
-
-        assistantCircle.textContent =
-            "AI";
-
-
-        await runWorkflowAnimation(
-            result.action
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "EduAgent error:",
-            error
-        );
-
-
-        responseBox.innerHTML = `
-            <h3>
-                Something went wrong
-            </h3>
-
-            <p>
-                Unable to connect to EduAgent.
-                Please try again.
-            </p>
-        `;
-
-
-        setStatus(
-            "Connection error",
-            "#f87171"
-        );
-
-
-        assistantCircle.textContent =
-            "!";
-
-    } finally {
-
-        askButton.disabled =
-            false;
-
-        input.disabled =
-            false;
-
-        input.focus();
-
-    }
-}
-
-
-askButton.addEventListener(
-    "click",
-    askEduAgent
-);
-
-
-input.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key ===
-            "Enter"
-        ) {
-
-            askEduAgent();
-
-        }
-
-    }
-);
-
+/* ================================
+   Quick Actions
+================================ */
 
 document
-    .querySelectorAll(
-        ".quick-button"
-    )
+    .querySelectorAll(".quick-button")
     .forEach(button => {
 
         button.addEventListener(
             "click",
             () => {
 
-                input.value =
+                const prompt =
                     button.dataset.prompt;
 
-                input.focus();
-
+                askAgent(prompt);
             }
         );
-
     });
 
+
+/* ================================
+   Ask Button
+================================ */
+
+askButton.addEventListener(
+    "click",
+    () => {
+
+        askAgent(
+            userInput.value
+        );
+    }
+);
+
+
+/* ================================
+   Enter Key
+================================ */
+
+userInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            askAgent(
+                userInput.value
+            );
+        }
+    }
+);
+
+
+/* ================================
+   Clear Conversation
+================================ */
 
 clearButton.addEventListener(
     "click",
     () => {
 
-        conversation.innerHTML =
-            "";
+        conversationHistory = [];
 
-        conversationArea.style.display =
-            "none";
+        conversationBox.innerHTML = "";
 
+        responseBox.innerHTML = "";
+
+        toolIndicator.textContent =
+            "No tool selected";
+
+        agentActivity.innerHTML = "";
+
+        const workflow =
+            document.getElementById(
+                "agent-workflow"
+            );
+
+        if (workflow) {
+            workflow.innerHTML = "";
+        }
+
+        userInput.value = "";
+
+        userInput.focus();
     }
 );
 
 
-/* Browser voice capability */
-
-const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
+/* ================================
+   Voice Input
+================================ */
 
 let recognition = null;
 
+if (
+    "webkitSpeechRecognition" in window ||
+    "SpeechRecognition" in window
+) {
 
-if (SpeechRecognition) {
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
     recognition =
         new SpeechRecognition();
 
-    recognition.lang =
-        "en-IN";
+    recognition.lang = "en-US";
 
-    recognition.continuous =
-        false;
+    recognition.continuous = false;
 
-    recognition.interimResults =
-        false;
-
+    recognition.interimResults = false;
 
     recognition.onstart = () => {
 
         voiceButton.classList.add(
-            "listening"
+            "active"
         );
-
-        voiceStatus.textContent =
-            "Listening... Speak now";
-
-        setStatus(
-            "Listening...",
-            "#67e8f9"
-        );
-
-        assistantCircle.textContent =
-            "🎙";
-
     };
 
+    recognition.onresult = event => {
 
-    recognition.onresult =
-        event => {
+        const transcript =
+            event.results[0][0].transcript;
 
-            const transcript =
-                event
-                    .results[0][0]
-                    .transcript;
+        userInput.value =
+            transcript;
 
+        askAgent(transcript);
+    };
 
-            input.value =
-                transcript;
+    recognition.onerror = error => {
 
+        console.error(
+            "Speech recognition error:",
+            error
+        );
 
-            voiceStatus.textContent =
-                "Voice captured";
+        voiceButton.classList.remove(
+            "active"
+        );
+    };
 
+    recognition.onend = () => {
 
-            setStatus(
-                "Voice input ready",
-                "#4ade80"
-            );
-
-
-            assistantCircle.textContent =
-                "AI";
-
-
-            input.focus();
-
-        };
-
-
-    recognition.onerror =
-        event => {
-
-            console.error(
-                "Speech recognition error:",
-                event.error
-            );
-
-
-            voiceStatus.textContent =
-                "Voice input unavailable";
-
-
-            setStatus(
-                "Voice input error",
-                "#f87171"
-            );
-
-
-            assistantCircle.textContent =
-                "!";
-
-        };
-
-
-    recognition.onend =
-        () => {
-
-            voiceButton.classList.remove(
-                "listening"
-            );
-
-        };
-
-} else {
-
-    voiceButton.disabled =
-        true;
-
-    voiceStatus.textContent =
-        "Voice input not supported";
-
+        voiceButton.classList.remove(
+            "active"
+        );
+    };
 }
 
 
@@ -1496,24 +1164,56 @@ voiceButton.addEventListener(
     () => {
 
         if (!recognition) {
+
+            toolIndicator.textContent =
+                "Voice input is not supported in this browser.";
+
             return;
         }
 
-        try {
-
-            recognition.start();
-
-        } catch (error) {
-
-            console.error(
-                "Voice start error:",
-                error
-            );
-
-        }
-
+        recognition.start();
     }
 );
+
+
+/* ================================
+   Utilities
+================================ */
+
+function formatAction(action) {
+
+    const names = {
+        study_plan: "Study Plan",
+        learning_resources: "Learning Resources",
+        calculator: "Calculator",
+        general: "General AI"
+    };
+
+    return names[action] || action;
+}
+
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function delay(milliseconds) {
+
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                milliseconds
+            )
+    );
+}
 
 
 
