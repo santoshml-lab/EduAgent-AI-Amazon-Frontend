@@ -25,6 +25,7 @@ root.innerHTML = `
             </p>
 
             <div class="voice-area">
+
                 <button
                     id="voiceButton"
                     class="voice-button"
@@ -37,6 +38,7 @@ root.innerHTML = `
                 <span id="voiceStatus">
                     Tap to simulate voice input
                 </span>
+
             </div>
 
             <div class="input-area">
@@ -54,58 +56,84 @@ root.innerHTML = `
 
             </div>
 
-            <div id="toolIndicator" class="tool-indicator">
+            <div
+                id="toolIndicator"
+                class="tool-indicator"
+            >
                 Ready
             </div>
 
+
+            <!-- Quick Actions -->
+
             <div class="quick-actions">
 
-    <p class="quick-title">
-        Try asking EduAgent
-    </p>
+                <p class="quick-title">
+                    Try asking EduAgent
+                </p>
 
-    <div class="quick-buttons">
+                <div class="quick-buttons">
 
-        <button
-            class="quick-button"
-            data-prompt="Create a 5 day study plan for Python"
-        >
-            📚 Study Plan
-        </button>
+                    <button
+                        class="quick-button"
+                        type="button"
+                        data-prompt="Create a 5 day study plan for Python"
+                    >
+                        📚 Study Plan
+                    </button>
 
-        <button
-            class="quick-button"
-            data-prompt="What are some good resources to learn mathematics?"
-        >
-            📖 Learning Resources
-        </button>
+                    <button
+                        class="quick-button"
+                        type="button"
+                        data-prompt="What are some good resources to learn mathematics?"
+                    >
+                        📖 Learning Resources
+                    </button>
 
-        <button
-            class="quick-button"
-            data-prompt="What is 25% of 800?"
-        >
-            🧮 Calculator
-        </button>
+                    <button
+                        class="quick-button"
+                        type="button"
+                        data-prompt="What is 25% of 800?"
+                    >
+                        🧮 Calculator
+                    </button>
 
-        <button
-            class="quick-button"
-            data-prompt="Explain machine learning in simple words."
-        >
-            🤖 Explain Concept
-        </button>
+                    <button
+                        class="quick-button"
+                        type="button"
+                        data-prompt="Explain machine learning in simple words."
+                    >
+                        🤖 Explain Concept
+                    </button>
 
-    </div>
+                </div>
 
-</div>
+            </div>
 
-            <div id="response" class="response">
+
+            <!-- Current Response -->
+
+            <div
+                id="response"
+                class="response"
+            >
                 Ask me for a study plan, learning resources,
                 calculations, or an educational explanation.
             </div>
 
-            <div id="conversation" class="conversation"></div>
+
+            <!-- Conversation History -->
+
+            <div
+                id="conversation"
+                class="conversation"
+            ></div>
+
+
+            <!-- Clear -->
 
             <div class="conversation-area">
+
                 <button
                     id="clearButton"
                     class="clear-button"
@@ -113,6 +141,7 @@ root.innerHTML = `
                 >
                     Clear Conversation
                 </button>
+
             </div>
 
         </section>
@@ -120,10 +149,21 @@ root.innerHTML = `
 `;
 
 
-const input = document.getElementById("userInput");
-const button = document.getElementById("askButton");
-const response = document.getElementById("response");
-const status = document.getElementById("status");
+/* ==============================
+   DOM ELEMENTS
+================================ */
+
+const input =
+    document.getElementById("userInput");
+
+const button =
+    document.getElementById("askButton");
+
+const response =
+    document.getElementById("response");
+
+const status =
+    document.getElementById("status");
 
 const assistantCircle =
     document.getElementById("assistantCircle");
@@ -143,13 +183,20 @@ const clearButton =
 const conversation =
     document.getElementById("conversation");
 
+const quickButtons =
+    document.querySelectorAll(".quick-button");
 
-/*
- * Conversation history
- */
+
+/* ==============================
+   STATE
+================================ */
 
 let conversationHistory = [];
 
+
+/* ==============================
+   STATUS
+================================ */
 
 function setStatus(message, color = "") {
 
@@ -164,23 +211,32 @@ function setStatus(message, color = "") {
 
 
 function setTool(message) {
+
     toolIndicator.textContent = message;
 }
 
 
 function showThinkingState() {
 
-    setStatus("Thinking...", "#facc15");
+    setStatus(
+        "Thinking...",
+        "#facc15"
+    );
 
     assistantCircle.textContent = "...";
 
-    setTool("EduAgent is selecting a tool...");
+    setTool(
+        "EduAgent is selecting a tool..."
+    );
 }
 
 
 function showReadyState() {
 
-    setStatus("Ready to help", "#4ade80");
+    setStatus(
+        "Ready to help",
+        "#4ade80"
+    );
 
     assistantCircle.textContent = "AI";
 
@@ -188,9 +244,9 @@ function showReadyState() {
 }
 
 
-/*
- * Add conversation message
- */
+/* ==============================
+   CONVERSATION
+================================ */
 
 function addConversationMessage(
     type,
@@ -198,74 +254,116 @@ function addConversationMessage(
 ) {
 
     conversationHistory.push({
-        type: type,
-        content: content,
-        time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-        })
-    });
 
+        type: type,
+
+        content: content,
+
+        time: new Date().toLocaleTimeString(
+            [],
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        )
+
+    });
 
     renderConversation();
 }
 
-
-/*
- * Render conversation
- */
 
 function renderConversation() {
 
     conversation.innerHTML = "";
 
 
-    conversationHistory.forEach((message) => {
+    conversationHistory.forEach(
+        (message) => {
 
-        const messageElement =
-            document.createElement("div");
-
-
-        messageElement.className =
-            `conversation-message ${message.type}`;
+            const messageElement =
+                document.createElement("div");
 
 
-        messageElement.innerHTML = `
-            <div class="message-header">
-                <strong>
-                    ${
-                        message.type === "user"
-                            ? "You"
-                            : "EduAgent AI"
-                    }
-                </strong>
-
-                <small>
-                    ${message.time}
-                </small>
-            </div>
-
-            <div class="message-content">
-                ${message.content}
-            </div>
-        `;
+            messageElement.className =
+                `conversation-message ${message.type}`;
 
 
-        conversation.appendChild(
-            messageElement
-        );
-    });
+            messageElement.innerHTML = `
+
+                <div class="message-header">
+
+                    <strong>
+                        ${
+                            message.type === "user"
+                                ? "You"
+                                : "EduAgent AI"
+                        }
+                    </strong>
+
+                    <small>
+                        ${message.time}
+                    </small>
+
+                </div>
+
+                <div class="message-content">
+                    ${message.content}
+                </div>
+
+            `;
+
+
+            conversation.appendChild(
+                messageElement
+            );
+
+        }
+    );
 }
 
 
-/*
- * Format agent response
- */
+/* ==============================
+   TOOL INDICATOR
+================================ */
+
+function updateToolIndicator(action) {
+
+    const toolNames = {
+
+        study_plan:
+            "Using Study Plan Tool",
+
+        learning_resources:
+            "Using Learning Resources Tool",
+
+        calculator:
+            "Using Calculator Tool",
+
+        general:
+            "Using EduAgent AI"
+
+    };
+
+
+    setTool(
+        toolNames[action] ||
+        "Processing request..."
+    );
+}
+
+
+/* ==============================
+   FORMAT AGENT RESPONSE
+================================ */
 
 function formatAgentResult(agentResult) {
 
     if (!agentResult) {
-        return "EduAgent completed the request.";
+
+        return (
+            "EduAgent completed the request."
+        );
     }
 
 
@@ -273,12 +371,15 @@ function formatAgentResult(agentResult) {
         agentResult.tool_result;
 
 
+    /* Study Plan */
+
     if (
         agentResult.action === "study_plan" &&
         toolResult?.plan
     ) {
 
         let output = `
+
             <h3>
                 📚 ${toolResult.topic} —
                 ${toolResult.days}-Day Study Plan
@@ -287,41 +388,50 @@ function formatAgentResult(agentResult) {
             <div class="tool-label">
                 Study Plan Tool
             </div>
+
         `;
 
 
-        toolResult.plan.forEach((day) => {
+        toolResult.plan.forEach(
+            (day) => {
 
-            output += `
-                <div class="plan-day">
+                output += `
 
-                    <strong>
-                        Day ${day.day}
-                    </strong>
+                    <div class="plan-day">
 
-                    <p>
-                        ${day.focus}
-                    </p>
+                        <strong>
+                            Day ${day.day}
+                        </strong>
 
-                    <small>
-                        ${day.task}
-                    </small>
+                        <p>
+                            ${day.focus}
+                        </p>
 
-                </div>
-            `;
-        });
+                        <small>
+                            ${day.task}
+                        </small>
+
+                    </div>
+
+                `;
+            }
+        );
 
 
         return output;
     }
 
 
+    /* Learning Resources */
+
     if (
-        agentResult.action === "learning_resources" &&
+        agentResult.action ===
+            "learning_resources" &&
         toolResult?.resources
     ) {
 
         let output = `
+
             <h3>
                 📖 Learning Resources for
                 ${toolResult.topic}
@@ -330,39 +440,48 @@ function formatAgentResult(agentResult) {
             <div class="tool-label">
                 Learning Resources Tool
             </div>
+
         `;
 
 
-        toolResult.resources.forEach((resource) => {
+        toolResult.resources.forEach(
+            (resource) => {
 
-            output += `
-                <div class="resource-item">
+                output += `
 
-                    <strong>
-                        ${resource.title}
-                    </strong>
+                    <div class="resource-item">
 
-                    <p>
-                        ${resource.purpose}
-                    </p>
+                        <strong>
+                            ${resource.title}
+                        </strong>
 
-                </div>
-            `;
-        });
+                        <p>
+                            ${resource.purpose}
+                        </p>
+
+                    </div>
+
+                `;
+            }
+        );
 
 
         return output;
     }
 
 
+    /* Calculator */
+
     if (
-        agentResult.action === "calculator" &&
+        agentResult.action ===
+            "calculator" &&
         toolResult
     ) {
 
         if (toolResult.error) {
 
             return `
+
                 <h3>
                     🧮 Calculator
                 </h3>
@@ -370,11 +489,13 @@ function formatAgentResult(agentResult) {
                 <p>
                     ❌ ${toolResult.error}
                 </p>
+
             `;
         }
 
 
         return `
+
             <h3>
                 🧮 Calculator
             </h3>
@@ -384,6 +505,7 @@ function formatAgentResult(agentResult) {
             </div>
 
             <p>
+
                 <strong>
                     ${toolResult.expression}
                 </strong>
@@ -393,17 +515,23 @@ function formatAgentResult(agentResult) {
                 <strong>
                     ${toolResult.result}
                 </strong>
+
             </p>
+
         `;
     }
 
+
+    /* General AI */
 
     if (agentResult.response) {
 
         try {
 
             const parsedResponse =
-                JSON.parse(agentResult.response);
+                JSON.parse(
+                    agentResult.response
+                );
 
 
             return (
@@ -421,17 +549,20 @@ function formatAgentResult(agentResult) {
 
 
     if (agentResult.message) {
+
         return agentResult.message;
     }
 
 
-    return "EduAgent completed the request.";
+    return (
+        "EduAgent completed the request."
+    );
 }
 
 
-/*
- * Ask EduAgent
- */
+/* ==============================
+   ASK EDUAGENT
+================================ */
 
 async function askEduAgent() {
 
@@ -450,9 +581,7 @@ async function askEduAgent() {
     }
 
 
-    /*
-     * Add user message immediately
-     */
+    /* Add user message */
 
     addConversationMessage(
         "user",
@@ -460,9 +589,14 @@ async function askEduAgent() {
     );
 
 
+    /* Disable controls */
+
     button.disabled = true;
+
     input.disabled = true;
+
     voiceButton.disabled = true;
+
 
     button.textContent =
         "Thinking...";
@@ -478,18 +612,29 @@ async function askEduAgent() {
     try {
 
         const result = await fetch(
+
             `${API_URL}/alexa-simulate`,
+
             {
+
                 method: "POST",
 
                 headers: {
-                    "Content-Type": "application/json"
+
+                    "Content-Type":
+                        "application/json"
+
                 },
 
                 body: JSON.stringify({
-                    user_input: userInput
+
+                    user_input:
+                        userInput
+
                 })
+
             }
+
         );
 
 
@@ -509,10 +654,14 @@ async function askEduAgent() {
             data.agent_result;
 
 
+        /* Show selected tool */
+
         updateToolIndicator(
             agentResult?.action
         );
 
+
+        /* Format response */
 
         const formattedResponse =
             formatAgentResult(
@@ -520,13 +669,13 @@ async function askEduAgent() {
             );
 
 
+        /* Show response */
+
         response.innerHTML =
             formattedResponse;
 
 
-        /*
-         * Add AI response to history
-         */
+        /* Add AI message */
 
         addConversationMessage(
             "assistant",
@@ -553,14 +702,17 @@ async function askEduAgent() {
 
 
         const errorMessage = `
+
             <h3>
                 Connection Error
             </h3>
 
             <p>
-                Unable to connect to EduAgent AI.
+                Unable to connect to
+                EduAgent AI.
                 Please try again.
             </p>
+
         `;
 
 
@@ -592,51 +744,53 @@ async function askEduAgent() {
     } finally {
 
         button.disabled = false;
+
         input.disabled = false;
+
         voiceButton.disabled = false;
+
 
         button.textContent =
             "Ask EduAgent";
 
+
         input.value = "";
 
         input.focus();
+
     }
 }
 
 
-/*
- * Update tool indicator
- */
+/* ==============================
+   QUICK ACTIONS
+================================ */
 
-function updateToolIndicator(action) {
+quickButtons.forEach(
+    (quickButton) => {
 
-    const toolNames = {
+        quickButton.addEventListener(
+            "click",
+            () => {
 
-        study_plan:
-            "Using Study Plan Tool",
-
-        learning_resources:
-            "Using Learning Resources Tool",
-
-        calculator:
-            "Using Calculator Tool",
-
-        general:
-            "Using EduAgent AI"
-    };
+                const prompt =
+                    quickButton.dataset.prompt;
 
 
-    setTool(
-        toolNames[action] ||
-        "Processing request..."
-    );
-}
+                input.value = prompt;
+
+                input.focus();
+
+            }
+        );
+
+    }
+);
 
 
-/*
- * Voice simulation
- */
+/* ==============================
+   VOICE SIMULATION
+================================ */
 
 voiceButton.addEventListener(
     "click",
@@ -661,37 +815,41 @@ voiceButton.addEventListener(
             "🎙";
 
 
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            voiceButton.classList.remove(
-                "listening"
-            );
-
-
-            voiceStatus.textContent =
-                "Voice simulation ready";
+                voiceButton.classList.remove(
+                    "listening"
+                );
 
 
-            setStatus(
-                "Ready to help",
-                "#4ade80"
-            );
+                voiceStatus.textContent =
+                    "Voice simulation ready";
 
 
-            assistantCircle.textContent =
-                "AI";
+                setStatus(
+                    "Ready to help",
+                    "#4ade80"
+                );
 
 
-            input.focus();
+                assistantCircle.textContent =
+                    "AI";
 
-        }, 1800);
+
+                input.focus();
+
+            },
+            1800
+        );
+
     }
 );
 
 
-/*
- * Ask button
- */
+/* ==============================
+   ASK BUTTON
+================================ */
 
 button.addEventListener(
     "click",
@@ -699,24 +857,27 @@ button.addEventListener(
 );
 
 
-/*
- * Enter key
- */
+/* ==============================
+   ENTER KEY
+================================ */
 
 input.addEventListener(
     "keydown",
     (event) => {
 
         if (event.key === "Enter") {
+
             askEduAgent();
+
         }
+
     }
 );
 
 
-/*
- * Clear conversation
- */
+/* ==============================
+   CLEAR CONVERSATION
+================================ */
 
 clearButton.addEventListener(
     "click",
@@ -737,5 +898,6 @@ clearButton.addEventListener(
         showReadyState();
 
         input.focus();
+
     }
-);ķ
+);
