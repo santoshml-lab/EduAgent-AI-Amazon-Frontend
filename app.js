@@ -1,7 +1,8 @@
 const API_URL =
     "https://eduagent-ai-amazon.onrender.com";
 
-const root = document.getElementById("root");
+const root =
+    document.getElementById("root");
 
 root.innerHTML = `
     <div class="app">
@@ -17,15 +18,22 @@ root.innerHTML = `
                 Alexa+ Simulated Educational AI Experience
             </p>
 
-            <div class="assistant-circle" id="assistantCircle">
+            <div
+                class="assistant-circle"
+                id="assistantCircle"
+            >
                 AI
             </div>
 
-            <div class="status" id="status">
+            <div
+                class="status"
+                id="status"
+            >
                 Ready
             </div>
 
             <div class="voice-area">
+
                 <button
                     class="voice-button"
                     id="voiceButton"
@@ -37,6 +45,7 @@ root.innerHTML = `
                 <span id="voiceStatus">
                     Voice input
                 </span>
+
             </div>
 
             <div class="input-area">
@@ -63,6 +72,54 @@ root.innerHTML = `
             >
                 No tool selected
             </div>
+
+
+            <!-- n8n-style Agent Workflow -->
+
+            <div
+                class="agent-workflow"
+                id="agentWorkflow"
+                style="display:none;"
+            >
+
+                <div class="workflow-title">
+                    Agent Workflow
+                </div>
+
+                <div
+                    class="workflow-canvas"
+                    id="workflowCanvas"
+                ></div>
+
+                <div
+                    class="workflow-status"
+                    id="workflowStatus"
+                >
+                    Waiting for request...
+                </div>
+
+            </div>
+
+
+            <!-- Agent Activity -->
+
+            <div
+                class="agent-activity"
+                id="agentActivity"
+                style="display:none;"
+            >
+
+                <div class="activity-title">
+                    Agent Activity
+                </div>
+
+                <div
+                    class="activity-list"
+                    id="activityList"
+                ></div>
+
+            </div>
+
 
             <div class="quick-actions">
 
@@ -104,20 +161,6 @@ root.innerHTML = `
 
             </div>
 
-            <div
-                class="agent-activity"
-                id="agentActivity"
-                style="display:none;"
-            >
-                <div class="activity-title">
-                    Agent Activity
-                </div>
-
-                <div
-                    class="activity-list"
-                    id="activityList"
-                ></div>
-            </div>
 
             <div
                 class="response"
@@ -127,6 +170,7 @@ root.innerHTML = `
                     Ask EduAgent a question to begin.
                 </p>
             </div>
+
 
             <div
                 class="conversation-area"
@@ -144,6 +188,7 @@ root.innerHTML = `
 
             </div>
 
+
             <div
                 class="conversation"
                 id="conversation"
@@ -152,6 +197,7 @@ root.innerHTML = `
         </div>
     </div>
 `;
+
 
 const input =
     document.getElementById("userInput");
@@ -192,22 +238,45 @@ const agentActivity =
 const activityList =
     document.getElementById("activityList");
 
+const agentWorkflow =
+    document.getElementById("agentWorkflow");
 
-function setStatus(message, color = "#4ade80") {
+const workflowCanvas =
+    document.getElementById("workflowCanvas");
 
-    statusText.textContent = message;
+const workflowStatus =
+    document.getElementById("workflowStatus");
 
-    statusText.style.color = color;
+
+function setStatus(
+    message,
+    color = "#4ade80"
+) {
+
+    statusText.textContent =
+        message;
+
+    statusText.style.color =
+        color;
 }
 
 
 function setToolIndicator(action) {
 
     const labels = {
-        study_plan: "📚 Study Plan Tool",
-        learning_resources: "📖 Learning Resources Tool",
-        calculator: "🧮 Calculator Tool",
-        general: "🧠 General AI Reasoning"
+
+        study_plan:
+            "📚 Study Plan Tool",
+
+        learning_resources:
+            "📖 Learning Resources Tool",
+
+        calculator:
+            "🧮 Calculator Tool",
+
+        general:
+            "🧠 General AI Reasoning"
+
     };
 
     toolIndicator.textContent =
@@ -219,13 +288,21 @@ function setToolIndicator(action) {
 function getActivityIcon(stage) {
 
     const icons = {
+
         request: "👤",
+
         intent_detection: "🧠",
+
         tool_selection: "🔧",
+
         tool_execution: "⚙️",
+
         reasoning: "🧠",
+
         response: "✅",
+
         error: "❌"
+
     };
 
     return icons[stage] || "•";
@@ -234,7 +311,8 @@ function getActivityIcon(stage) {
 
 function formatActivityMessage(item) {
 
-    const stageMessages = {
+    const messages = {
+
         request:
             "Understanding your request",
 
@@ -255,10 +333,11 @@ function formatActivityMessage(item) {
 
         error:
             "An error occurred"
+
     };
 
     return (
-        stageMessages[item.stage] ||
+        messages[item.stage] ||
         item.message ||
         "Processing request"
     );
@@ -267,8 +346,10 @@ function formatActivityMessage(item) {
 
 function renderTrace(trace) {
 
-    if (!Array.isArray(trace) ||
-        trace.length === 0) {
+    if (
+        !Array.isArray(trace) ||
+        trace.length === 0
+    ) {
 
         agentActivity.style.display =
             "none";
@@ -281,57 +362,258 @@ function renderTrace(trace) {
 
     activityList.innerHTML = "";
 
-    trace.forEach((item, index) => {
+    trace.forEach(
+        (item, index) => {
 
-        const activity =
-            document.createElement("div");
+            const activity =
+                document.createElement(
+                    "div"
+                );
 
-        activity.className =
-            "activity-item";
+            activity.className =
+                "activity-item";
 
-        activity.innerHTML = `
-            <div class="activity-icon">
-                ${getActivityIcon(item.stage)}
-            </div>
+            activity.innerHTML = `
+                <div class="activity-icon">
+                    ${getActivityIcon(item.stage)}
+                </div>
 
-            <div class="activity-content">
+                <div class="activity-content">
 
-                <strong>
-                    ${formatActivityMessage(item)}
-                </strong>
+                    <strong>
+                        ${formatActivityMessage(item)}
+                    </strong>
 
-                <small>
-                    Step ${item.step}
-                </small>
+                    <small>
+                        Step ${item.step}
+                    </small>
 
-            </div>
-        `;
+                </div>
+            `;
 
-        activity.style.animationDelay =
-            `${index * 0.08}s`;
+            activity.style.animationDelay =
+                `${index * 0.08}s`;
 
-        activityList.appendChild(activity);
-    });
+            activityList.appendChild(
+                activity
+            );
+
+        }
+    );
 }
 
 
-function formatGeneralResponse(response) {
+function getWorkflowTool(action) {
+
+    const tools = {
+
+        study_plan: {
+            icon: "📚",
+            title: "Study Plan",
+            subtitle: "Tool"
+        },
+
+        learning_resources: {
+            icon: "📖",
+            title: "Resources",
+            subtitle: "Tool"
+        },
+
+        calculator: {
+            icon: "🧮",
+            title: "Calculator",
+            subtitle: "Tool"
+        },
+
+        general: {
+            icon: "🧠",
+            title: "AI Response",
+            subtitle: "Reasoning"
+        }
+
+    };
+
+    return (
+        tools[action] ||
+        tools.general
+    );
+}
+
+
+function createWorkflowNode(
+    icon,
+    title,
+    subtitle,
+    className = ""
+) {
+
+    const node =
+        document.createElement("div");
+
+    node.className =
+        `workflow-node ${className}`;
+
+    node.innerHTML = `
+        <div class="workflow-icon">
+            ${icon}
+        </div>
+
+        <strong>
+            ${title}
+        </strong>
+
+        <small>
+            ${subtitle}
+        </small>
+    `;
+
+    return node;
+}
+
+
+function createWorkflowArrow() {
+
+    const arrow =
+        document.createElement("div");
+
+    arrow.className =
+        "workflow-arrow";
+
+    arrow.textContent =
+        "→";
+
+    return arrow;
+}
+
+
+function renderWorkflow(action) {
+
+    const tool =
+        getWorkflowTool(action);
+
+    agentWorkflow.style.display =
+        "block";
+
+    workflowCanvas.innerHTML = "";
+
+    const requestNode =
+        createWorkflowNode(
+            "👤",
+            "User Request",
+            "Input",
+            "completed"
+        );
+
+    const brainNode =
+        createWorkflowNode(
+            "🧠",
+            "AI Brain",
+            "Intent",
+            "completed"
+        );
+
+    const routerNode =
+        createWorkflowNode(
+            "🔀",
+            "Tool Router",
+            "Decision",
+            "completed"
+        );
+
+    const toolNode =
+        createWorkflowNode(
+            tool.icon,
+            tool.title,
+            tool.subtitle,
+            "completed"
+        );
+
+    const resultNode =
+        createWorkflowNode(
+            "📦",
+            "Tool Result",
+            "Output",
+            "completed"
+        );
+
+    const responseNode =
+        createWorkflowNode(
+            "✅",
+            "Response",
+            "AI",
+            "completed"
+        );
+
+    const nodes = [
+
+        requestNode,
+
+        createWorkflowArrow(),
+
+        brainNode,
+
+        createWorkflowArrow(),
+
+        routerNode,
+
+        createWorkflowArrow(),
+
+        toolNode,
+
+        createWorkflowArrow(),
+
+        resultNode,
+
+        createWorkflowArrow(),
+
+        responseNode
+
+    ];
+
+    nodes.forEach(node => {
+
+        workflowCanvas.appendChild(
+            node
+        );
+
+    });
+
+    workflowStatus.textContent =
+        `Workflow completed using ${tool.title}.`;
+}
+
+
+function formatGeneralResponse(
+    response
+) {
 
     try {
 
         const parsed =
             JSON.parse(response);
 
-        if (parsed.answer !== undefined) {
-            return String(parsed.answer);
+        if (
+            parsed.answer !== undefined
+        ) {
+            return String(
+                parsed.answer
+            );
         }
 
-        if (parsed.response !== undefined) {
-            return String(parsed.response);
+        if (
+            parsed.response !== undefined
+        ) {
+            return String(
+                parsed.response
+            );
         }
 
-        if (parsed.message !== undefined) {
-            return String(parsed.message);
+        if (
+            parsed.message !== undefined
+        ) {
+            return String(
+                parsed.message
+            );
         }
 
         return JSON.stringify(
@@ -343,6 +625,7 @@ function formatGeneralResponse(response) {
     } catch {
 
         return response;
+
     }
 }
 
@@ -351,18 +634,29 @@ function renderResponse(data) {
 
     responseBox.innerHTML = "";
 
-    if (data.action === "study_plan") {
+
+    if (
+        data.action ===
+        "study_plan"
+    ) {
 
         const title =
-            document.createElement("h3");
+            document.createElement(
+                "h3"
+            );
 
         title.textContent =
             `${data.days}-Day Study Plan: ${data.topic}`;
 
-        responseBox.appendChild(title);
+        responseBox.appendChild(
+            title
+        );
+
 
         const label =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         label.className =
             "tool-label";
@@ -370,15 +664,22 @@ function renderResponse(data) {
         label.textContent =
             "Study Plan Tool";
 
-        responseBox.appendChild(label);
+        responseBox.appendChild(
+            label
+        );
+
 
         const plan =
-            data.tool_result?.plan || [];
+            data.tool_result?.plan ||
+            [];
+
 
         plan.forEach(day => {
 
             const dayBox =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             dayBox.className =
                 "plan-day";
@@ -397,25 +698,38 @@ function renderResponse(data) {
                 </small>
             `;
 
-            responseBox.appendChild(dayBox);
+            responseBox.appendChild(
+                dayBox
+            );
+
         });
 
         return;
     }
 
 
-    if (data.action === "learning_resources") {
+    if (
+        data.action ===
+        "learning_resources"
+    ) {
 
         const title =
-            document.createElement("h3");
+            document.createElement(
+                "h3"
+            );
 
         title.textContent =
             `Learning Resources: ${data.topic}`;
 
-        responseBox.appendChild(title);
+        responseBox.appendChild(
+            title
+        );
+
 
         const label =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         label.className =
             "tool-label";
@@ -423,48 +737,70 @@ function renderResponse(data) {
         label.textContent =
             "Learning Resources Tool";
 
-        responseBox.appendChild(label);
+        responseBox.appendChild(
+            label
+        );
+
 
         const resources =
-            data.tool_result?.resources || [];
+            data.tool_result?.resources ||
+            [];
 
-        resources.forEach(resource => {
 
-            const item =
-                document.createElement("div");
+        resources.forEach(
+            resource => {
 
-            item.className =
-                "resource-item";
+                const item =
+                    document.createElement(
+                        "div"
+                    );
 
-            item.innerHTML = `
-                <strong>
-                    ${resource.title}
-                </strong>
+                item.className =
+                    "resource-item";
 
-                <p>
-                    ${resource.purpose}
-                </p>
-            `;
+                item.innerHTML = `
+                    <strong>
+                        ${resource.title}
+                    </strong>
 
-            responseBox.appendChild(item);
-        });
+                    <p>
+                        ${resource.purpose}
+                    </p>
+                `;
+
+                responseBox.appendChild(
+                    item
+                );
+
+            }
+        );
 
         return;
     }
 
 
-    if (data.action === "calculator") {
+    if (
+        data.action ===
+        "calculator"
+    ) {
 
         const title =
-            document.createElement("h3");
+            document.createElement(
+                "h3"
+            );
 
         title.textContent =
             "Calculation Result";
 
-        responseBox.appendChild(title);
+        responseBox.appendChild(
+            title
+        );
+
 
         const label =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         label.className =
             "tool-label";
@@ -472,45 +808,63 @@ function renderResponse(data) {
         label.textContent =
             "Calculator Tool";
 
-        responseBox.appendChild(label);
+        responseBox.appendChild(
+            label
+        );
+
 
         const result =
             data.tool_result?.result ??
             data.result;
 
+
         const expression =
             data.tool_result?.expression ??
             data.expression;
 
+
         const paragraph =
-            document.createElement("p");
+            document.createElement(
+                "p"
+            );
 
         paragraph.innerHTML =
             `<strong>${expression}</strong> = ${result}`;
 
-        responseBox.appendChild(paragraph);
+        responseBox.appendChild(
+            paragraph
+        );
 
         return;
     }
 
 
     const title =
-        document.createElement("h3");
+        document.createElement(
+            "h3"
+        );
 
     title.textContent =
         "EduAgent AI";
 
-    responseBox.appendChild(title);
+    responseBox.appendChild(
+        title
+    );
+
 
     const content =
-        document.createElement("p");
+        document.createElement(
+            "p"
+        );
 
     content.textContent =
         formatGeneralResponse(
             data.response || ""
         );
 
-    responseBox.appendChild(content);
+    responseBox.appendChild(
+        content
+    );
 }
 
 
@@ -520,27 +874,38 @@ function addConversationMessage(
 ) {
 
     const message =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     message.className =
         `conversation-message ${role}`;
 
+
     const header =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     header.className =
         "message-header";
 
+
     const name =
-        document.createElement("strong");
+        document.createElement(
+            "strong"
+        );
 
     name.textContent =
         role === "user"
             ? "You"
             : "EduAgent AI";
 
+
     const time =
-        document.createElement("small");
+        document.createElement(
+            "small"
+        );
 
     time.textContent =
         new Date().toLocaleTimeString(
@@ -551,11 +916,16 @@ function addConversationMessage(
             }
         );
 
+
     header.appendChild(name);
+
     header.appendChild(time);
 
+
     const body =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     body.className =
         "message-content";
@@ -563,22 +933,33 @@ function addConversationMessage(
     body.textContent =
         content;
 
+
     message.appendChild(header);
+
     message.appendChild(body);
 
-    conversation.appendChild(message);
+    conversation.appendChild(
+        message
+    );
+
 
     conversation.scrollTop =
         conversation.scrollHeight;
+
 
     conversationArea.style.display =
         "block";
 }
 
 
-function getConversationText(data) {
+function getConversationText(
+    data
+) {
 
-    if (data.action === "calculator") {
+    if (
+        data.action ===
+        "calculator"
+    ) {
 
         const result =
             data.tool_result?.result ??
@@ -587,7 +968,11 @@ function getConversationText(data) {
         return `Result: ${result}`;
     }
 
-    if (data.action === "study_plan") {
+
+    if (
+        data.action ===
+        "study_plan"
+    ) {
 
         return (
             data.tool_result?.message ||
@@ -595,12 +980,17 @@ function getConversationText(data) {
         );
     }
 
-    if (data.action === "learning_resources") {
+
+    if (
+        data.action ===
+        "learning_resources"
+    ) {
 
         return (
             `Learning resources prepared for ${data.topic}.`
         );
     }
+
 
     return formatGeneralResponse(
         data.response || ""
@@ -613,40 +1003,57 @@ async function askEduAgent() {
     const userInput =
         input.value.trim();
 
+
     if (!userInput) {
         return;
     }
+
 
     addConversationMessage(
         "user",
         userInput
     );
 
-    askButton.disabled = true;
 
-    input.disabled = true;
+    askButton.disabled =
+        true;
+
+    input.disabled =
+        true;
+
 
     setStatus(
         "EduAgent is thinking...",
         "#67e8f9"
     );
 
+
     assistantCircle.textContent =
         "•••";
+
 
     toolIndicator.textContent =
         "Analyzing request...";
 
+
     agentActivity.style.display =
         "none";
 
+    agentWorkflow.style.display =
+        "none";
+
+
     activityList.innerHTML = "";
+
+    workflowCanvas.innerHTML = "";
+
 
     responseBox.innerHTML = `
         <p>
             Processing your request...
         </p>
     `;
+
 
     try {
 
@@ -668,45 +1075,66 @@ async function askEduAgent() {
                 }
             );
 
+
         if (!response.ok) {
+
             throw new Error(
                 `HTTP ${response.status}`
             );
+
         }
+
 
         const data =
             await response.json();
 
+
         const result =
             data.agent_result;
 
+
         if (!result) {
+
             throw new Error(
                 "Invalid agent response."
             );
+
         }
+
 
         renderTrace(
             result.trace
         );
 
+
+        renderWorkflow(
+            result.action
+        );
+
+
         setToolIndicator(
             result.action
         );
+
 
         renderResponse(
             result
         );
 
+
         addConversationMessage(
             "assistant",
-            getConversationText(result)
+            getConversationText(
+                result
+            )
         );
+
 
         setStatus(
             "Ready",
             "#4ade80"
         );
+
 
         assistantCircle.textContent =
             "AI";
@@ -718,18 +1146,24 @@ async function askEduAgent() {
             error
         );
 
+
         responseBox.innerHTML = `
-            <h3>Something went wrong</h3>
+            <h3>
+                Something went wrong
+            </h3>
+
             <p>
                 Unable to connect to EduAgent.
                 Please try again.
             </p>
         `;
 
+
         setStatus(
             "Connection error",
             "#f87171"
         );
+
 
         assistantCircle.textContent =
             "!";
@@ -743,6 +1177,7 @@ async function askEduAgent() {
             false;
 
         input.focus();
+
     }
 }
 
@@ -757,8 +1192,13 @@ input.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Enter") {
+        if (
+            event.key ===
+            "Enter"
+        ) {
+
             askEduAgent();
+
         }
 
     }
@@ -766,7 +1206,9 @@ input.addEventListener(
 
 
 document
-    .querySelectorAll(".quick-button")
+    .querySelectorAll(
+        ".quick-button"
+    )
     .forEach(button => {
 
         button.addEventListener(
@@ -777,6 +1219,7 @@ document
                     button.dataset.prompt;
 
                 input.focus();
+
             }
         );
 
@@ -787,26 +1230,24 @@ clearButton.addEventListener(
     "click",
     () => {
 
-        conversation.innerHTML = "";
+        conversation.innerHTML =
+            "";
 
         conversationArea.style.display =
             "none";
+
     }
 );
 
 
-/*
-    Voice input is intentionally kept
-    as a browser capability check.
-
-    Full voice integration can be added later.
-*/
+/* Browser voice capability */
 
 const SpeechRecognition =
     window.SpeechRecognition ||
     window.webkitSpeechRecognition;
 
 let recognition = null;
+
 
 if (SpeechRecognition) {
 
@@ -821,6 +1262,7 @@ if (SpeechRecognition) {
 
     recognition.interimResults =
         false;
+
 
     recognition.onstart = () => {
 
@@ -838,61 +1280,75 @@ if (SpeechRecognition) {
 
         assistantCircle.textContent =
             "🎙";
-    };
-
-
-    recognition.onresult = event => {
-
-        const transcript =
-            event
-                .results[0][0]
-                .transcript;
-
-        input.value =
-            transcript;
-
-        voiceStatus.textContent =
-            "Voice captured";
-
-        setStatus(
-            "Voice input ready",
-            "#4ade80"
-        );
-
-        assistantCircle.textContent =
-            "AI";
-
-        input.focus();
-    };
-
-
-    recognition.onerror = event => {
-
-        console.error(
-            "Speech recognition error:",
-            event.error
-        );
-
-        voiceStatus.textContent =
-            "Voice input unavailable";
-
-        setStatus(
-            "Voice input error",
-            "#f87171"
-        );
-
-        assistantCircle.textContent =
-            "!";
-    };
-
-
-    recognition.onend = () => {
-
-        voiceButton.classList.remove(
-            "listening"
-        );
 
     };
+
+
+    recognition.onresult =
+        event => {
+
+            const transcript =
+                event
+                    .results[0][0]
+                    .transcript;
+
+
+            input.value =
+                transcript;
+
+
+            voiceStatus.textContent =
+                "Voice captured";
+
+
+            setStatus(
+                "Voice input ready",
+                "#4ade80"
+            );
+
+
+            assistantCircle.textContent =
+                "AI";
+
+
+            input.focus();
+
+        };
+
+
+    recognition.onerror =
+        event => {
+
+            console.error(
+                "Speech recognition error:",
+                event.error
+            );
+
+
+            voiceStatus.textContent =
+                "Voice input unavailable";
+
+
+            setStatus(
+                "Voice input error",
+                "#f87171"
+            );
+
+
+            assistantCircle.textContent =
+                "!";
+
+        };
+
+
+    recognition.onend =
+        () => {
+
+            voiceButton.classList.remove(
+                "listening"
+            );
+
+        };
 
 } else {
 
@@ -901,6 +1357,7 @@ if (SpeechRecognition) {
 
     voiceStatus.textContent =
         "Voice input not supported";
+
 }
 
 
@@ -913,7 +1370,9 @@ voiceButton.addEventListener(
         }
 
         try {
+
             recognition.start();
+
         } catch (error) {
 
             console.error(
@@ -925,3 +1384,11 @@ voiceButton.addEventListener(
 
     }
 );
+
+
+
+
+
+
+      
+
