@@ -274,6 +274,7 @@ async function askAgent(prompt) {
             "EduAgent request error:",
             error
         );
+       alert(error.message);
 
         responseBox.innerHTML = `
             <div class="response-error">
