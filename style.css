@@ -313,3 +313,13 @@ button:disabled {
         padding: 17px;
     }
                      }
+.tool-label {
+    display: inline-block;
+    margin-bottom: 14px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(0, 168, 232, 0.10);
+    color: var(--accent-light);
+    font-size: 11px;
+    font-weight: 600;
+}
