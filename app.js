@@ -63,6 +63,8 @@ root.innerHTML = `
                 calculations, or an educational explanation.
             </div>
 
+            <div id="conversation" class="conversation"></div>
+
             <div class="conversation-area">
                 <button
                     id="clearButton"
@@ -82,16 +84,35 @@ const input = document.getElementById("userInput");
 const button = document.getElementById("askButton");
 const response = document.getElementById("response");
 const status = document.getElementById("status");
-const assistantCircle = document.getElementById("assistantCircle");
 
-const voiceButton = document.getElementById("voiceButton");
-const voiceStatus = document.getElementById("voiceStatus");
+const assistantCircle =
+    document.getElementById("assistantCircle");
 
-const toolIndicator = document.getElementById("toolIndicator");
-const clearButton = document.getElementById("clearButton");
+const voiceButton =
+    document.getElementById("voiceButton");
+
+const voiceStatus =
+    document.getElementById("voiceStatus");
+
+const toolIndicator =
+    document.getElementById("toolIndicator");
+
+const clearButton =
+    document.getElementById("clearButton");
+
+const conversation =
+    document.getElementById("conversation");
+
+
+/*
+ * Conversation history
+ */
+
+let conversationHistory = [];
 
 
 function setStatus(message, color = "") {
+
     status.textContent = message;
 
     if (color) {
@@ -127,21 +148,79 @@ function showReadyState() {
 }
 
 
-function updateToolIndicator(action) {
+/*
+ * Add conversation message
+ */
 
-    const toolNames = {
-        study_plan: "Using Study Plan Tool",
-        learning_resources: "Using Learning Resources Tool",
-        calculator: "Using Calculator Tool",
-        general: "Using EduAgent AI"
-    };
+function addConversationMessage(
+    type,
+    content
+) {
 
-    setTool(
-        toolNames[action] ||
-        "Processing request..."
-    );
+    conversationHistory.push({
+        type: type,
+        content: content,
+        time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        })
+    });
+
+
+    renderConversation();
 }
 
+
+/*
+ * Render conversation
+ */
+
+function renderConversation() {
+
+    conversation.innerHTML = "";
+
+
+    conversationHistory.forEach((message) => {
+
+        const messageElement =
+            document.createElement("div");
+
+
+        messageElement.className =
+            `conversation-message ${message.type}`;
+
+
+        messageElement.innerHTML = `
+            <div class="message-header">
+                <strong>
+                    ${
+                        message.type === "user"
+                            ? "You"
+                            : "EduAgent AI"
+                    }
+                </strong>
+
+                <small>
+                    ${message.time}
+                </small>
+            </div>
+
+            <div class="message-content">
+                ${message.content}
+            </div>
+        `;
+
+
+        conversation.appendChild(
+            messageElement
+        );
+    });
+}
+
+
+/*
+ * Format agent response
+ */
 
 function formatAgentResult(agentResult) {
 
@@ -150,7 +229,8 @@ function formatAgentResult(agentResult) {
     }
 
 
-    const toolResult = agentResult.tool_result;
+    const toolResult =
+        agentResult.tool_result;
 
 
     if (
@@ -285,6 +365,7 @@ function formatAgentResult(agentResult) {
             const parsedResponse =
                 JSON.parse(agentResult.response);
 
+
             return (
                 parsedResponse.response ||
                 parsedResponse.answer ||
@@ -308,9 +389,14 @@ function formatAgentResult(agentResult) {
 }
 
 
+/*
+ * Ask EduAgent
+ */
+
 async function askEduAgent() {
 
-    const userInput = input.value.trim();
+    const userInput =
+        input.value.trim();
 
 
     if (!userInput) {
@@ -324,11 +410,23 @@ async function askEduAgent() {
     }
 
 
+    /*
+     * Add user message immediately
+     */
+
+    addConversationMessage(
+        "user",
+        userInput
+    );
+
+
     button.disabled = true;
     input.disabled = true;
     voiceButton.disabled = true;
 
-    button.textContent = "Thinking...";
+    button.textContent =
+        "Thinking...";
+
 
     response.textContent =
         "EduAgent is processing your request...";
@@ -356,13 +454,16 @@ async function askEduAgent() {
 
 
         if (!result.ok) {
+
             throw new Error(
                 `HTTP ${result.status}`
             );
         }
 
 
-        const data = await result.json();
+        const data =
+            await result.json();
+
 
         const agentResult =
             data.agent_result;
@@ -373,8 +474,24 @@ async function askEduAgent() {
         );
 
 
+        const formattedResponse =
+            formatAgentResult(
+                agentResult
+            );
+
+
         response.innerHTML =
-            formatAgentResult(agentResult);
+            formattedResponse;
+
+
+        /*
+         * Add AI response to history
+         */
+
+        addConversationMessage(
+            "assistant",
+            formattedResponse
+        );
 
 
         setStatus(
@@ -383,7 +500,8 @@ async function askEduAgent() {
         );
 
 
-        assistantCircle.textContent = "✓";
+        assistantCircle.textContent =
+            "✓";
 
 
     } catch (error) {
@@ -394,7 +512,7 @@ async function askEduAgent() {
         );
 
 
-        response.innerHTML = `
+        const errorMessage = `
             <h3>
                 Connection Error
             </h3>
@@ -406,15 +524,29 @@ async function askEduAgent() {
         `;
 
 
+        response.innerHTML =
+            errorMessage;
+
+
+        addConversationMessage(
+            "assistant",
+            errorMessage
+        );
+
+
         setStatus(
             "Connection error",
             "#f87171"
         );
 
 
-        assistantCircle.textContent = "!";
+        assistantCircle.textContent =
+            "!";
 
-        setTool("Request failed");
+
+        setTool(
+            "Request failed"
+        );
 
 
     } finally {
@@ -426,28 +558,64 @@ async function askEduAgent() {
         button.textContent =
             "Ask EduAgent";
 
+        input.value = "";
+
         input.focus();
     }
 }
 
 
 /*
- * Simulated voice interaction
+ * Update tool indicator
+ */
+
+function updateToolIndicator(action) {
+
+    const toolNames = {
+
+        study_plan:
+            "Using Study Plan Tool",
+
+        learning_resources:
+            "Using Learning Resources Tool",
+
+        calculator:
+            "Using Calculator Tool",
+
+        general:
+            "Using EduAgent AI"
+    };
+
+
+    setTool(
+        toolNames[action] ||
+        "Processing request..."
+    );
+}
+
+
+/*
+ * Voice simulation
  */
 
 voiceButton.addEventListener(
     "click",
     () => {
 
-        voiceButton.classList.add("listening");
+        voiceButton.classList.add(
+            "listening"
+        );
+
 
         voiceStatus.textContent =
             "Listening...";
+
 
         setStatus(
             "Listening...",
             "#67e8f9"
         );
+
 
         assistantCircle.textContent =
             "🎙";
@@ -459,16 +627,20 @@ voiceButton.addEventListener(
                 "listening"
             );
 
+
             voiceStatus.textContent =
                 "Voice simulation ready";
+
 
             setStatus(
                 "Ready to help",
                 "#4ade80"
             );
 
+
             assistantCircle.textContent =
                 "AI";
+
 
             input.focus();
 
@@ -498,7 +670,6 @@ input.addEventListener(
         if (event.key === "Enter") {
             askEduAgent();
         }
-
     }
 );
 
@@ -511,16 +682,20 @@ clearButton.addEventListener(
     "click",
     () => {
 
+        conversationHistory = [];
+
+        conversation.innerHTML = "";
+
         input.value = "";
 
         response.textContent =
             "Ask me for a study plan, learning resources, calculations, or an educational explanation.";
 
-        showReadyState();
-
         voiceStatus.textContent =
             "Tap to simulate voice input";
 
+        showReadyState();
+
         input.focus();
     }
-);
+);ķ
