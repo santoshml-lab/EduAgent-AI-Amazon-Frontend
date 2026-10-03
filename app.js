@@ -600,11 +600,16 @@ function renderWebSearch(agentResult) {
                                 ? `
                                     <p>
                                         ${escapeHTML(
-                                            truncateText(
-                                                content,
-                                                240
-                                            )
-                                        )}
+                                              truncateText(
+                                              cleanWebText(content),
+                                              240
+    )
+)}
+                                            
+                                                
+                                                
+                                            
+                                        
                                     </p>
                                   `
                                 : ""
