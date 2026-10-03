@@ -70,7 +70,7 @@ root.innerHTML = `
             </div>
 
             <div class="tool-indicator">
-                AI Brain • Tool Router • Agentic Tools
+                AI Brain • Planner • Tool Router • Agentic Tools
             </div>
 
 
@@ -114,6 +114,14 @@ root.innerHTML = `
                         type="button"
                     >
                         🌐 Search AI News
+                    </button>
+
+                    <button
+                        class="quick-button"
+                        data-prompt="I have a mathematics exam in 7 days. Create a study plan and give me learning resources."
+                        type="button"
+                    >
+                        🤖 Multi-Agent Study
                     </button>
 
                 </div>
@@ -236,6 +244,7 @@ function cleanWebText(text) {
 
 
 function truncateText(text, maxLength = 240) {
+
     const value = String(text || "");
 
     if (value.length <= maxLength) {
@@ -247,18 +256,26 @@ function truncateText(text, maxLength = 240) {
 
 
 function isSafeUrl(url) {
+
     try {
+
         const parsed = new URL(url);
 
         return (
             parsed.protocol === "http:" ||
             parsed.protocol === "https:"
         );
+
     } catch {
+
         return false;
     }
 }
 
+
+// ==================================================
+// RESPONSE TEXT
+// ==================================================
 
 function getResponseText(agentResult) {
 
@@ -266,12 +283,146 @@ function getResponseText(agentResult) {
         return "";
     }
 
-    if (typeof agentResult.response === "string") {
+
+    const action =
+        agentResult.action ||
+        agentResult.tool ||
+        "";
+
+
+    const toolResult =
+        agentResult.tool_result ||
+        {};
+
+
+    // ----------------------------------------------
+    // MULTI-TOOL
+    // ----------------------------------------------
+
+    if (action === "multi_tool") {
+
+        if (agentResult.response) {
+
+            return String(
+                agentResult.response
+            );
+        }
+
+        const toolResults =
+            Array.isArray(
+                agentResult.tool_results
+            )
+                ? agentResult.tool_results
+                : [];
+
+        if (toolResults.length > 0) {
+
+            const tools =
+                toolResults
+                    .map(
+                        item =>
+                            item.tool
+                    )
+                    .join(", ");
+
+            return (
+                `Completed ${toolResults.length} `
+                + `agentic tool steps: ${tools}.`
+            );
+        }
+
+        return "Multi-tool workflow completed.";
+    }
+
+
+    // ----------------------------------------------
+    // STUDY PLAN
+    // ----------------------------------------------
+
+    if (action === "study_plan") {
+
+        const topic =
+            toolResult.topic ||
+            agentResult.topic ||
+            "the requested topic";
+
+        const days =
+            toolResult.days ||
+            agentResult.days ||
+            "";
+
+        return (
+            `I've created a ${days}-day `
+            + `study plan for ${topic}.`
+        );
+    }
+
+
+    // ----------------------------------------------
+    // LEARNING RESOURCES
+    // ----------------------------------------------
+
+    if (action === "learning_resources") {
+
+        const topic =
+            toolResult.topic ||
+            agentResult.topic ||
+            "the requested topic";
+
+        return (
+            `I've prepared learning resources `
+            + `for ${topic}.`
+        );
+    }
+
+
+    // ----------------------------------------------
+    // CALCULATOR
+    // ----------------------------------------------
+
+    if (action === "calculator") {
+
+        const expression =
+            toolResult.expression ||
+            agentResult.expression ||
+            "";
+
+        const result =
+            toolResult.result ??
+            agentResult.result;
+
+        return `${expression} = ${result}`;
+    }
+
+
+    // ----------------------------------------------
+    // WEB SEARCH
+    // ----------------------------------------------
+
+    if (action === "web_search") {
+
+        return (
+            toolResult.answer ||
+            agentResult.answer ||
+            "I've completed the web search and gathered the latest results."
+        );
+    }
+
+
+    // ----------------------------------------------
+    // RESPONSE FIELD
+    // ----------------------------------------------
+
+    if (
+        typeof agentResult.response === "string"
+    ) {
 
         try {
 
             const parsed =
-                JSON.parse(agentResult.response);
+                JSON.parse(
+                    agentResult.response
+                );
 
             return (
                 parsed.summary ||
@@ -286,13 +437,21 @@ function getResponseText(agentResult) {
         }
     }
 
+
     if (agentResult.message) {
         return agentResult.message;
     }
 
-    if (agentResult.result !== undefined) {
-        return String(agentResult.result);
+
+    if (
+        agentResult.result !== undefined
+    ) {
+
+        return String(
+            agentResult.result
+        );
     }
+
 
     return "";
 }
@@ -388,11 +547,12 @@ function showResponse(content) {
 // STUDY PLAN
 // ==================================================
 
-function renderStudyPlan(agentResult) {
+function buildStudyPlanHtml(
+    toolResult
+) {
 
     const result =
-        agentResult.tool_result ||
-        agentResult;
+        toolResult || {};
 
     const topic =
         result.topic ||
@@ -418,6 +578,7 @@ function renderStudyPlan(agentResult) {
         </h3>
     `;
 
+
     plan.forEach((item) => {
 
         html += `
@@ -439,7 +600,20 @@ function renderStudyPlan(agentResult) {
         `;
     });
 
-    showResponse(html);
+
+    return html;
+}
+
+
+function renderStudyPlan(agentResult) {
+
+    const result =
+        agentResult.tool_result ||
+        agentResult;
+
+    showResponse(
+        buildStudyPlanHtml(result)
+    );
 }
 
 
@@ -447,11 +621,12 @@ function renderStudyPlan(agentResult) {
 // LEARNING RESOURCES
 // ==================================================
 
-function renderLearningResources(agentResult) {
+function buildLearningResourcesHtml(
+    toolResult
+) {
 
     const result =
-        agentResult.tool_result ||
-        agentResult;
+        toolResult || {};
 
     const topic =
         result.topic ||
@@ -472,6 +647,7 @@ function renderLearningResources(agentResult) {
         </h3>
     `;
 
+
     resources.forEach((resource) => {
 
         html += `
@@ -489,7 +665,22 @@ function renderLearningResources(agentResult) {
         `;
     });
 
-    showResponse(html);
+
+    return html;
+}
+
+
+function renderLearningResources(
+    agentResult
+) {
+
+    const result =
+        agentResult.tool_result ||
+        agentResult;
+
+    showResponse(
+        buildLearningResourcesHtml(result)
+    );
 }
 
 
@@ -497,7 +688,9 @@ function renderLearningResources(agentResult) {
 // CALCULATOR
 // ==================================================
 
-function renderCalculator(agentResult) {
+function renderCalculator(
+    agentResult
+) {
 
     const result =
         agentResult.tool_result ||
@@ -509,6 +702,7 @@ function renderCalculator(agentResult) {
 
     const value =
         result.result;
+
 
     showResponse(`
         <span class="tool-label">
@@ -538,7 +732,9 @@ function renderCalculator(agentResult) {
 // WEB SEARCH
 // ==================================================
 
-function renderWebSearch(agentResult) {
+function renderWebSearch(
+    agentResult
+) {
 
     const result =
         agentResult.tool_result ||
@@ -556,6 +752,7 @@ function renderWebSearch(agentResult) {
     let summary =
         result.answer ||
         "";
+
 
     if (
         !summary &&
@@ -581,6 +778,7 @@ function renderWebSearch(agentResult) {
                 agentResult.response;
         }
     }
+
 
     summary =
         cleanWebText(summary);
@@ -743,20 +941,278 @@ function renderWebSearch(agentResult) {
 
 
 // ==================================================
+// MULTI-TOOL RESPONSE
+// ==================================================
+
+function renderMultiTool(
+    agentResult
+) {
+
+    const toolResults =
+        Array.isArray(
+            agentResult.tool_results
+        )
+            ? agentResult.tool_results
+            : [];
+
+
+    let html = `
+
+        <span class="tool-label">
+            🤖 Multi-Agent Workflow
+        </span>
+
+        <h3>
+            Agentic Learning Workflow Completed
+        </h3>
+
+        <p>
+            EduAgent planned and executed
+            multiple tools for your request.
+        </p>
+
+    `;
+
+
+    toolResults.forEach(
+        (item, index) => {
+
+            const tool =
+                item.tool || "";
+
+            const result =
+                item.result || {};
+
+
+            html += `
+
+                <div class="plan-day">
+
+                    <strong>
+                        Step ${index + 1} —
+                        ${escapeHtml(
+                            getToolDisplayName(tool)
+                        )}
+                    </strong>
+
+                    <p>
+                        ${escapeHtml(
+                            getToolStatus(result)
+                        )}
+                    </p>
+
+                </div>
+
+            `;
+
+
+            if (
+                tool === "study_plan"
+            ) {
+
+                html += `
+                    <div class="multi-tool-section">
+                        ${buildStudyPlanHtml(result)}
+                    </div>
+                `;
+            }
+
+
+            if (
+                tool === "learning_resources"
+            ) {
+
+                html += `
+                    <div class="multi-tool-section">
+                        ${buildLearningResourcesHtml(result)}
+                    </div>
+                `;
+            }
+
+
+            if (
+                tool === "calculator"
+            ) {
+
+                const expression =
+                    result.expression ||
+                    "";
+
+                const value =
+                    result.result;
+
+
+                html += `
+
+                    <div class="multi-tool-section">
+
+                        <span class="tool-label">
+                            🧮 Calculator
+                        </span>
+
+                        <p>
+                            ${escapeHtml(
+                                expression
+                            )}
+                            =
+                            ${escapeHtml(
+                                value
+                            )}
+                        </p>
+
+                    </div>
+
+                `;
+            }
+
+
+            if (
+                tool === "web_search"
+            ) {
+
+                const summary =
+                    cleanWebText(
+                        result.answer ||
+                        ""
+                    );
+
+
+                html += `
+
+                    <div class="multi-tool-section">
+
+                        <span class="tool-label">
+                            🌐 Web Research
+                        </span>
+
+                        <p>
+                            ${escapeHtml(
+                                summary ||
+                                "Web research completed."
+                            )}
+                        </p>
+
+                    </div>
+
+                `;
+            }
+
+        }
+    );
+
+
+    if (agentResult.response) {
+
+        html += `
+
+            <div class="web-search-summary">
+
+                <div class="web-summary-title">
+                    Final Agent Response
+                </div>
+
+                <p>
+                    ${formatAgentText(
+                        agentResult.response
+                    )}
+                </p>
+
+            </div>
+
+        `;
+    }
+
+
+    showResponse(html);
+}
+
+
+function getToolDisplayName(
+    tool
+) {
+
+    const names = {
+
+        study_plan:
+            "Study Plan Tool",
+
+        learning_resources:
+            "Learning Resources Tool",
+
+        calculator:
+            "Calculator Tool",
+
+        web_search:
+            "Web Search Tool"
+
+    };
+
+
+    return (
+        names[tool] ||
+        "Agent Tool"
+    );
+}
+
+
+function getToolStatus(
+    result
+) {
+
+    if (
+        result &&
+        result.error
+    ) {
+
+        return (
+            "Tool execution returned an error."
+        );
+    }
+
+
+    if (
+        result &&
+        result.message
+    ) {
+
+        return result.message;
+    }
+
+
+    return "Tool executed successfully.";
+}
+
+
+function formatAgentText(
+    text
+) {
+
+    return escapeHtml(
+        String(text || "")
+    ).replace(
+        /\n/g,
+        "<br>"
+    );
+}
+
+
+// ==================================================
 // GENERAL AI
 // ==================================================
 
-function renderGeneralResponse(agentResult) {
+function renderGeneralResponse(
+    agentResult
+) {
 
     const text =
         getResponseText(agentResult);
 
     const formatted =
-        escapeHtml(text)
-            .replace(/\n/g, "<br>");
+        formatAgentText(text);
 
 
     showResponse(`
+
         <span class="tool-label">
             🤖 General AI
         </span>
@@ -768,6 +1224,7 @@ function renderGeneralResponse(agentResult) {
         <p>
             ${formatted}
         </p>
+
     `);
 }
 
@@ -776,40 +1233,69 @@ function renderGeneralResponse(agentResult) {
 // RESPONSE ROUTER
 // ==================================================
 
-function renderResponse(agentResult) {
+function renderResponse(
+    agentResult
+) {
 
     const action =
         getAction(agentResult);
 
+
     switch (action) {
 
         case "study_plan":
-            renderStudyPlan(agentResult);
+
+            renderStudyPlan(
+                agentResult
+            );
+
             break;
 
+
         case "learning_resources":
+
             renderLearningResources(
                 agentResult
             );
+
             break;
 
+
         case "calculator":
+
             renderCalculator(
                 agentResult
             );
+
             break;
 
+
         case "web_search":
+
             renderWebSearch(
                 agentResult
             );
+
             break;
 
+
+        case "multi_tool":
+
+            renderMultiTool(
+                agentResult
+            );
+
+            break;
+
+
         case "general":
+
         default:
+
             renderGeneralResponse(
                 agentResult
             );
+
             break;
     }
 }
@@ -823,10 +1309,116 @@ function renderAgentActivity(
     agentResult
 ) {
 
+    const action =
+        getAction(agentResult);
+
+
+    if (
+        action === "multi_tool"
+    ) {
+
+        const toolResults =
+            Array.isArray(
+                agentResult.tool_results
+            )
+                ? agentResult.tool_results
+                : [];
+
+
+        const toolNames =
+            toolResults
+                .map(
+                    item =>
+                        getToolDisplayName(
+                            item.tool
+                        )
+                )
+                .join(" + ");
+
+
+        activityContainer.innerHTML = `
+
+            <div class="branch-workflow-title">
+                Agent Activity
+            </div>
+
+            <div class="branch-main">
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        👤
+                    </div>
+
+                    <strong>
+                        Understanding Request
+                    </strong>
+
+                    <small>
+                        Completed ✓
+                    </small>
+
+                </div>
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        🧠
+                    </div>
+
+                    <strong>
+                        AI Brain
+                    </strong>
+
+                    <small>
+                        Intent detected ✓
+                    </small>
+
+                </div>
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div class="branch-node selected">
+
+                    <div class="branch-icon">
+                        📋
+                    </div>
+
+                    <strong>
+                        Planner
+                    </strong>
+
+                    <small>
+                        ${escapeHtml(
+                            `${toolResults.length} steps`
+                        )}
+                    </small>
+
+                </div>
+
+            </div>
+
+            <div class="branch-status">
+                Multi-tool plan executed:
+                ${escapeHtml(toolNames)}
+            </div>
+        `;
+
+        return;
+    }
+
+
     const toolName =
         getWorkflowToolName(
             agentResult
         );
+
 
     activityContainer.innerHTML = `
 
@@ -852,11 +1444,9 @@ function renderAgentActivity(
 
             </div>
 
-
             <div class="branch-arrow">
                 ↓
             </div>
-
 
             <div class="branch-node completed">
 
@@ -874,11 +1464,9 @@ function renderAgentActivity(
 
             </div>
 
-
             <div class="branch-arrow">
                 ↓
             </div>
-
 
             <div class="branch-node selected">
 
@@ -906,7 +1494,7 @@ function renderAgentActivity(
 
 
 // ==================================================
-// WORKFLOW
+// WORKFLOW TOOL NAME
 // ==================================================
 
 function getWorkflowToolName(
@@ -915,6 +1503,7 @@ function getWorkflowToolName(
 
     const action =
         getAction(agentResult);
+
 
     const names = {
 
@@ -931,8 +1520,13 @@ function getWorkflowToolName(
             "Web Search Tool",
 
         general:
-            "General AI"
+            "General AI",
+
+        multi_tool:
+            "Multi-Agent Planner"
+
     };
+
 
     return (
         names[action] ||
@@ -941,25 +1535,85 @@ function getWorkflowToolName(
 }
 
 
-function buildWorkflow(
+// ==================================================
+// MULTI-TOOL WORKFLOW
+// ==================================================
+
+function buildMultiToolWorkflow(
     agentResult
 ) {
 
-    const action =
-        getAction(agentResult);
+    const toolResults =
+        Array.isArray(
+            agentResult.tool_results
+        )
+            ? agentResult.tool_results
+            : [];
 
-    const toolName =
-        getWorkflowToolName(
-            agentResult
+
+    const toolActions =
+        toolResults.map(
+            item => item.tool
         );
+
+
+    let toolNodes = "";
+
+
+    toolResults.forEach(
+        (item, index) => {
+
+            const tool =
+                item.tool;
+
+
+            toolNodes += `
+
+                <div class="branch-tool">
+
+                    <div
+                        class="branch-node selected"
+                    >
+
+                        <div class="branch-icon">
+                            ${getToolIcon(tool)}
+                        </div>
+
+                        <strong>
+                            ${escapeHtml(
+                                getToolShortName(
+                                    tool
+                                )
+                            )}
+                        </strong>
+
+                        <small>
+                            Step ${index + 1} ✓
+                        </small>
+
+                    </div>
+
+                </div>
+
+            `;
+        }
+    );
+
+
+    const toolSummary =
+        toolActions
+            .map(
+                tool =>
+                    getToolDisplayName(tool)
+            )
+            .join(" + ");
 
 
     workflowContainer.innerHTML = `
 
         <div class="branch-workflow-title">
-            Agent Workflow
+            Multi-Agent Workflow
         </div>
-
 
         <div class="branch-main">
 
@@ -978,7 +1632,6 @@ function buildWorkflow(
                 </small>
 
             </div>
-
 
             <div class="branch-arrow">
                 ↓
@@ -1001,11 +1654,211 @@ function buildWorkflow(
 
             </div>
 
+            <div class="branch-arrow">
+                ↓
+            </div>
+
+
+            <div class="branch-node completed">
+
+                <div class="branch-icon">
+                    📋
+                </div>
+
+                <strong>
+                    Planner
+                </strong>
+
+                <small>
+                    ${toolResults.length} tool steps ✓
+                </small>
+
+            </div>
 
             <div class="branch-arrow">
                 ↓
             </div>
 
+
+            <div class="branch-tools">
+
+                ${toolNodes}
+
+            </div>
+
+
+            <div class="branch-arrow">
+                ↓
+            </div>
+
+
+            <div class="branch-node completed">
+
+                <div class="branch-icon">
+                    🔗
+                </div>
+
+                <strong>
+                    Result Aggregator
+                </strong>
+
+                <small>
+                    Results combined ✓
+                </small>
+
+            </div>
+
+            <div class="branch-arrow">
+                ↓
+            </div>
+
+
+            <div class="branch-node completed">
+
+                <div class="branch-icon">
+                    💬
+                </div>
+
+                <strong>
+                    Final Response
+                </strong>
+
+                <small>
+                    Completed ✓
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="branch-status">
+            Multi-agent workflow completed •
+            ${escapeHtml(toolSummary)}
+        </div>
+    `;
+}
+
+
+function getToolIcon(
+    tool
+) {
+
+    const icons = {
+
+        study_plan:
+            "📚",
+
+        learning_resources:
+            "📖",
+
+        calculator:
+            "🧮",
+
+        web_search:
+            "🌐"
+
+    };
+
+
+    return (
+        icons[tool] ||
+        "🔧"
+    );
+}
+
+
+function getToolShortName(
+    tool
+) {
+
+    const names = {
+
+        study_plan:
+            "Study Plan",
+
+        learning_resources:
+            "Resources",
+
+        calculator:
+            "Calculator",
+
+        web_search:
+            "Web Search"
+
+    };
+
+
+    return (
+        names[tool] ||
+        "Tool"
+    );
+}
+
+
+// ==================================================
+// SINGLE TOOL WORKFLOW
+// ==================================================
+
+function buildSingleToolWorkflow(
+    agentResult
+) {
+
+    const action =
+        getAction(agentResult);
+
+    const toolName =
+        getWorkflowToolName(
+            agentResult
+        );
+
+
+    workflowContainer.innerHTML = `
+
+        <div class="branch-workflow-title">
+            Agent Workflow
+        </div>
+
+        <div class="branch-main">
+
+            <div class="branch-node completed">
+
+                <div class="branch-icon">
+                    👤
+                </div>
+
+                <strong>
+                    User Request
+                </strong>
+
+                <small>
+                    Completed ✓
+                </small>
+
+            </div>
+
+            <div class="branch-arrow">
+                ↓
+            </div>
+
+            <div class="branch-node completed">
+
+                <div class="branch-icon">
+                    🧠
+                </div>
+
+                <strong>
+                    AI Brain
+                </strong>
+
+                <small>
+                    Intent detected ✓
+                </small>
+
+            </div>
+
+            <div class="branch-arrow">
+                ↓
+            </div>
 
             <div class="branch-node completed">
 
@@ -1023,11 +1876,9 @@ function buildWorkflow(
 
             </div>
 
-
             <div class="branch-arrow">
                 ↓
             </div>
-
 
             <div class="branch-tools">
 
@@ -1068,11 +1919,9 @@ function buildWorkflow(
 
             </div>
 
-
             <div class="branch-arrow">
                 ↓
             </div>
-
 
             <div class="branch-node completed">
 
@@ -1090,11 +1939,9 @@ function buildWorkflow(
 
             </div>
 
-
             <div class="branch-arrow">
                 ↓
             </div>
-
 
             <div class="branch-node completed">
 
@@ -1114,7 +1961,6 @@ function buildWorkflow(
 
         </div>
 
-
         <div class="branch-status">
             Workflow completed successfully •
             ${escapeHtml(toolName)}
@@ -1133,7 +1979,9 @@ function createBranchTool(
     const selected =
         action === selectedAction;
 
+
     return `
+
         <div class="branch-tool">
 
             <div
@@ -1168,6 +2016,36 @@ function createBranchTool(
 
 
 // ==================================================
+// BUILD WORKFLOW ROUTER
+// ==================================================
+
+function buildWorkflow(
+    agentResult
+) {
+
+    const action =
+        getAction(agentResult);
+
+
+    if (
+        action === "multi_tool"
+    ) {
+
+        buildMultiToolWorkflow(
+            agentResult
+        );
+
+        return;
+    }
+
+
+    buildSingleToolWorkflow(
+        agentResult
+    );
+}
+
+
+// ==================================================
 // API REQUEST
 // ==================================================
 
@@ -1177,6 +2055,7 @@ async function sendMessage(
 
     const cleanPrompt =
         String(prompt || "").trim();
+
 
     if (!cleanPrompt) {
         return;
@@ -1204,6 +2083,7 @@ async function sendMessage(
 
 
     showResponse(`
+
         <span class="tool-label">
             🧠 AI Brain
         </span>
@@ -1213,9 +2093,11 @@ async function sendMessage(
         </h3>
 
         <p>
-            EduAgent is understanding your request
-            and selecting the appropriate tool.
+            EduAgent is understanding your request,
+            planning the required tools,
+            and executing the agentic workflow.
         </p>
+
     `);
 
 
@@ -1259,20 +2141,28 @@ async function sendMessage(
             data;
 
 
+        // Render main result
+
         renderResponse(
             agentResult
         );
 
+
+        // Render activity
 
         renderAgentActivity(
             agentResult
         );
 
 
+        // Render workflow
+
         buildWorkflow(
             agentResult
         );
 
+
+        // Conversation text
 
         const assistantText =
             getResponseText(
@@ -1308,6 +2198,7 @@ async function sendMessage(
 
 
         showResponse(`
+
             <span class="tool-label">
                 ⚠️ Error
             </span>
@@ -1321,8 +2212,8 @@ async function sendMessage(
                     error.message
                 )}
             </p>
-        `);
 
+        `);
 
     } finally {
 
@@ -1494,7 +2385,9 @@ function clearConversation() {
     conversationContainer.innerHTML =
         "";
 
+
     responseContainer.innerHTML = `
+
         <h3>
             Welcome to EduAgent AI
         </h3>
@@ -1504,7 +2397,9 @@ function clearConversation() {
             action to see the agentic workflow
             in action.
         </p>
+
     `;
+
 
     activityContainer.innerHTML =
         "";
@@ -1568,7 +2463,7 @@ setupQuickActions();
 setupVoiceRecognition();
 
 console.log(
-    "EduAgent AI frontend initialized successfully."
+    "EduAgent AI multi-agent frontend initialized successfully."
 );
 
 
