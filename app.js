@@ -108,6 +108,13 @@ root.innerHTML = `
                         🤖 Ask AI
                     </button>
 
+                    <button
+                        class="quick-button"
+                        data-prompt="Search the latest AI news"
+                    >
+                        🔎 AI News
+                    </button>
+
                 </div>
 
             </div>
@@ -189,11 +196,10 @@ async function askAgent(prompt) {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                
-                 body: JSON.stringify({
-    user_input: prompt
-})   
-                
+
+                body: JSON.stringify({
+                    user_input: prompt
+                })
             }
         );
 
@@ -230,13 +236,6 @@ async function askAgent(prompt) {
                 "Workflow error:",
                 workflowError
             );
-
-            /*
-             * The main AI response has already
-             * been received successfully.
-             * Therefore workflow errors should
-             * not make the whole request fail.
-             */
 
             const workflow =
                 document.getElementById(
@@ -276,7 +275,8 @@ async function askAgent(prompt) {
             "EduAgent request error:",
             error
         );
-       alert(error.message);
+
+        alert(error.message);
 
         responseBox.innerHTML = `
             <div class="response-error">
@@ -296,12 +296,6 @@ async function askAgent(prompt) {
     }
 }
 
-    
-        
-                
-            
-            
-
 
 /* ================================
    Response Renderer
@@ -309,7 +303,8 @@ async function askAgent(prompt) {
 
 function renderResponse(data) {
 
-    const agentResult = data.agent_result || {};
+    const agentResult =
+        data.agent_result || {};
 
     const action =
         agentResult.action || "general";
@@ -332,6 +327,7 @@ function renderResponse(data) {
         `;
 
         if (agentResult.topic) {
+
             html += `
                 <h3>
                     ${escapeHTML(agentResult.topic)}
@@ -340,6 +336,7 @@ function renderResponse(data) {
         }
 
         if (agentResult.days) {
+
             html += `
                 <p>
                     ${agentResult.days}-day study plan
@@ -381,6 +378,7 @@ function renderResponse(data) {
         `;
 
         if (agentResult.topic) {
+
             html += `
                 <h3>
                     ${escapeHTML(agentResult.topic)}
@@ -396,11 +394,15 @@ function renderResponse(data) {
                     <div class="resource-item">
 
                         <strong>
-                            ${escapeHTML(resource.title || "")}
+                            ${escapeHTML(
+                                resource.title || ""
+                            )}
                         </strong>
 
                         <p>
-                            ${escapeHTML(resource.purpose || "")}
+                            ${escapeHTML(
+                                resource.purpose || ""
+                            )}
                         </p>
 
                     </div>
@@ -446,6 +448,10 @@ function renderResponse(data) {
             `;
         }
 
+    } else if (action === "web_search") {
+
+        html += renderWebSearch(agentResult);
+
     } else {
 
         html += `
@@ -468,6 +474,187 @@ function renderResponse(data) {
 
 
 /* ================================
+   Web Search Renderer
+================================ */
+
+function renderWebSearch(agentResult) {
+
+    let html = `
+        <div class="tool-label">
+            🔎 Web Research
+        </div>
+    `;
+
+    const toolResult =
+        agentResult.tool_result || {};
+
+    const query =
+        toolResult.query ||
+        "";
+
+    if (query) {
+
+        html += `
+            <div class="web-search-query">
+                <strong>Search:</strong>
+                ${escapeHTML(query)}
+            </div>
+        `;
+    }
+
+    let summary = "";
+
+    if (agentResult.response) {
+
+        try {
+
+            const parsed =
+                typeof agentResult.response === "string"
+                    ? JSON.parse(agentResult.response)
+                    : agentResult.response;
+
+            summary =
+                parsed.summary ||
+                parsed.answer ||
+                "";
+
+        } catch (error) {
+
+            summary =
+                typeof agentResult.response === "string"
+                    ? agentResult.response
+                    : "";
+        }
+    }
+
+    if (!summary && toolResult.answer) {
+        summary = toolResult.answer;
+    }
+
+    if (summary) {
+
+        html += `
+            <div class="web-search-summary">
+
+                <div class="web-summary-title">
+                    AI Research Summary
+                </div>
+
+                <p>
+                    ${escapeHTML(summary)}
+                </p>
+
+            </div>
+        `;
+    }
+
+    const results =
+        Array.isArray(toolResult.results)
+            ? toolResult.results
+            : [];
+
+    if (results.length > 0) {
+
+        html += `
+            <div class="web-sources-title">
+                Sources
+            </div>
+
+            <div class="web-sources">
+        `;
+
+        results.forEach((result, index) => {
+
+            const title =
+                result.title ||
+                "Web Result";
+
+            const url =
+                result.url ||
+                "";
+
+            const content =
+                result.content ||
+                "";
+
+            const score =
+                typeof result.score === "number"
+                    ? `${Math.round(result.score * 100)}%`
+                    : "";
+
+            html += `
+                <div class="web-source-card">
+
+                    <div class="web-source-number">
+                        ${index + 1}
+                    </div>
+
+                    <div class="web-source-content">
+
+                        <strong>
+                            ${escapeHTML(title)}
+                        </strong>
+
+                        ${
+                            content
+                                ? `
+                                    <p>
+                                        ${escapeHTML(
+                                            truncateText(
+                                                content,
+                                                240
+                                            )
+                                        )}
+                                    </p>
+                                  `
+                                : ""
+                        }
+
+                        <div class="web-source-meta">
+
+                            ${
+                                url
+                                    ? `
+                                        <a
+                                            href="${escapeAttribute(url)}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            View Source ↗
+                                        </a>
+                                      `
+                                    : ""
+                            }
+
+                            ${
+                                score
+                                    ? `
+                                        <span>
+                                            Relevance ${score}
+                                        </span>
+                                      `
+                                    : ""
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+            `;
+
+        });
+
+        html += `
+            </div>
+        `;
+    }
+
+    return html;
+}
+
+
+/* ================================
    Get Response Text
 ================================ */
 
@@ -475,6 +662,31 @@ function getResponseText(data) {
 
     const agentResult =
         data.agent_result || {};
+
+    if (agentResult.action === "web_search") {
+
+        if (agentResult.tool_result?.answer) {
+            return agentResult.tool_result.answer;
+        }
+
+        if (agentResult.response) {
+
+            try {
+
+                const parsed =
+                    typeof agentResult.response === "string"
+                        ? JSON.parse(agentResult.response)
+                        : agentResult.response;
+
+                if (parsed.summary) {
+                    return parsed.summary;
+                }
+
+            } catch (error) {
+                return agentResult.response;
+            }
+        }
+    }
 
     if (agentResult.response) {
 
@@ -489,6 +701,7 @@ function getResponseText(data) {
             typeof agentResult.response ===
             "object"
         ) {
+
             return (
                 agentResult.response.answer ||
                 agentResult.response.message ||
@@ -525,7 +738,10 @@ function renderAgentActivity(trace) {
         return;
     }
 
-    if (!Array.isArray(trace) || trace.length === 0) {
+    if (
+        !Array.isArray(trace) ||
+        trace.length === 0
+    ) {
 
         agentActivity.innerHTML = "";
 
@@ -591,14 +807,25 @@ function renderAgentActivity(trace) {
 function getActivityTitle(stage) {
 
     const titles = {
-        request: "Understanding your request",
-        intent_detection: "Detecting user intent",
-        tool_selection: "Selecting the appropriate tool",
-        tool_execution: "Running the selected tool",
-        response: "Response completed"
+
+        request:
+            "Understanding your request",
+
+        intent_detection:
+            "Detecting user intent",
+
+        tool_selection:
+            "Selecting the appropriate tool",
+
+        tool_execution:
+            "Running the selected tool",
+
+        response:
+            "Response completed"
     };
 
-    return titles[stage] || "Agent processing";
+    return titles[stage] ||
+        "Agent processing";
 }
 
 
@@ -620,11 +847,28 @@ function buildWorkflow(action) {
     let selectedNode = "general";
 
     if (action === "study_plan") {
-        selectedNode = "study_plan";
+
+        selectedNode =
+            "study_plan";
+
     } else if (action === "calculator") {
-        selectedNode = "calculator";
-    } else if (action === "learning_resources") {
-        selectedNode = "learning_resources";
+
+        selectedNode =
+            "calculator";
+
+    } else if (
+        action === "learning_resources"
+    ) {
+
+        selectedNode =
+            "learning_resources";
+
+    } else if (
+        action === "web_search"
+    ) {
+
+        selectedNode =
+            "web_search";
     }
 
     workflow.innerHTML = `
@@ -720,6 +964,13 @@ function buildWorkflow(action) {
                         "📖",
                         "Resources",
                         "Learning resources"
+                    )}
+
+                    ${createBranchTool(
+                        "web_search",
+                        "🔎",
+                        "Web Search",
+                        "Research current information"
                     )}
 
                     ${createBranchTool(
@@ -899,16 +1150,32 @@ async function runWorkflowAnimation(
     let selectedNode = "general";
 
     if (action === "study_plan") {
-        selectedNode = "study_plan";
+
+        selectedNode =
+            "study_plan";
+
     } else if (action === "calculator") {
-        selectedNode = "calculator";
+
+        selectedNode =
+            "calculator";
+
     } else if (
         action === "learning_resources"
     ) {
-        selectedNode = "learning_resources";
+
+        selectedNode =
+            "learning_resources";
+
+    } else if (
+        action === "web_search"
+    ) {
+
+        selectedNode =
+            "web_search";
     }
 
     const steps = [
+
         {
             node: "request",
             message:
@@ -990,13 +1257,25 @@ async function runWorkflowAnimation(
 function getWorkflowToolName(node) {
 
     const names = {
-        study_plan: "Study Plan Tool",
-        calculator: "Calculator Tool",
-        learning_resources: "Resources Tool",
-        general: "General AI"
+
+        study_plan:
+            "Study Plan Tool",
+
+        calculator:
+            "Calculator Tool",
+
+        learning_resources:
+            "Resources Tool",
+
+        web_search:
+            "Web Search Tool",
+
+        general:
+            "General AI"
     };
 
-    return names[node] || "Agent";
+    return names[node] ||
+        "Agent";
 }
 
 
@@ -1228,13 +1507,46 @@ voiceButton.addEventListener(
 function formatAction(action) {
 
     const names = {
-        study_plan: "Study Plan",
-        learning_resources: "Learning Resources",
-        calculator: "Calculator",
-        general: "General AI"
+
+        study_plan:
+            "Study Plan",
+
+        learning_resources:
+            "Learning Resources",
+
+        calculator:
+            "Calculator",
+
+        web_search:
+            "Web Search",
+
+        general:
+            "General AI"
     };
 
-    return names[action] || action;
+    return names[action] ||
+        action;
+}
+
+
+function truncateText(
+    text,
+    maxLength
+) {
+
+    const value =
+        String(text || "");
+
+    if (value.length <= maxLength) {
+        return value;
+    }
+
+    return (
+        value.substring(
+            0,
+            maxLength
+        ) + "..."
+    );
 }
 
 
@@ -1249,6 +1561,16 @@ function escapeHTML(value) {
 }
 
 
+function escapeAttribute(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+}
+
+
 function delay(milliseconds) {
 
     return new Promise(
@@ -1259,7 +1581,6 @@ function delay(milliseconds) {
             )
     );
 }
-
 
 
 
