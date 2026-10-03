@@ -1,231 +1,198 @@
 const API_URL = "https://eduagent-ai-amazon.onrender.com";
 
-let conversationHistory = [];
-let isListening = false;
-let recognition = null;
-
 const root = document.getElementById("root");
 
+let conversation = [];
 
-// ==================================================
-// MAIN APPLICATION UI
-// ==================================================
 
 root.innerHTML = `
-    <div class="app">
+<div class="app">
 
-        <div class="card">
+    <div class="card">
 
-            <div class="badge">
-                AMAZON DEVELOPER HACKATHON 2026
+        <div class="badge">
+            AMAZON HACKATHON • ALEXA+ SIMULATION
+        </div>
+
+        <h1>EduAgent AI</h1>
+
+        <p class="subtitle">
+            Agentic AI learning assistant
+        </p>
+
+        <div class="assistant-circle">
+            🧠
+        </div>
+
+        <div class="status">
+            Ready to help
+        </div>
+
+        <div class="tool-indicator">
+            AI Brain • Planner • Adaptive Reasoning • Agentic Tools
+        </div>
+
+        <div class="voice-area">
+            <button
+                id="voiceButton"
+                class="voice-button"
+            >
+                🎙️
+            </button>
+
+            <div id="voiceStatus">
+                Tap to speak
+            </div>
+        </div>
+
+        <div class="input-area">
+
+            <input
+                id="userInput"
+                type="text"
+                placeholder="Ask EduAgent anything..."
+            >
+
+            <button id="sendButton">
+                Send
+            </button>
+
+        </div>
+
+        <div class="quick-actions">
+
+            <div class="quick-title">
+                Quick Actions
             </div>
 
-            <div class="assistant-circle">
-                AI
-            </div>
-
-            <div class="status">
-                ● EduAgent AI Online
-            </div>
-
-            <h1>EduAgent AI</h1>
-
-            <div class="subtitle">
-                Alexa+ simulated educational AI assistant
-            </div>
-
-            <div class="voice-area">
+            <div class="quick-buttons">
 
                 <button
-                    id="voice-button"
-                    class="voice-button"
-                    type="button"
-                    aria-label="Voice input"
+                    class="quick-button"
+                    data-prompt="Create a 7 day study plan for Python."
                 >
-                    🎙️
+                    📚 Study Plan
                 </button>
 
-                <span>
-                    Tap to speak
-                </span>
-
-            </div>
-
-            <div class="input-area">
-
-                <input
-                    id="prompt-input"
-                    type="text"
-                    placeholder="Ask EduAgent anything..."
-                    autocomplete="off"
-                >
-
                 <button
-                    id="ask-button"
-                    type="button"
+                    class="quick-button"
+                    data-prompt="Give me learning resources for machine learning."
                 >
-                    Ask
+                    📖 Resources
                 </button>
 
-            </div>
-
-            <div class="tool-indicator">
-                AI Brain • Planner • Tool Router • Agentic Tools
-            </div>
-
-
-            <!-- Quick Actions -->
-
-            <div class="quick-actions">
-
-                <div class="quick-title">
-                    Try a quick action
-                </div>
-
-                <div class="quick-buttons">
-
-                    <button
-                        class="quick-button"
-                        data-prompt="Create a 5 day study plan for mathematics"
-                        type="button"
-                    >
-                        📚 Create Study Plan
-                    </button>
-
-                    <button
-                        class="quick-button"
-                        data-prompt="Calculate 125 * 48"
-                        type="button"
-                    >
-                        🧮 Calculate
-                    </button>
-
-                    <button
-                        class="quick-button"
-                        data-prompt="Give me some resources to learn Python"
-                        type="button"
-                    >
-                        📖 Learning Resources
-                    </button>
-
-                    <button
-                        class="quick-button"
-                        data-prompt="Search the latest AI news"
-                        type="button"
-                    >
-                        🌐 Search AI News
-                    </button>
-
-                    <button
-                        class="quick-button"
-                        data-prompt="I have a mathematics exam in 7 days. Create a study plan and give me learning resources."
-                        type="button"
-                    >
-                        🤖 Multi-Agent Study
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- Response -->
-
-            <div
-                id="response"
-                class="response"
-            >
-                <h3>Welcome to EduAgent AI</h3>
-
-                <p>
-                    Ask a question or choose a quick action to see
-                    the agentic workflow in action.
-                </p>
-            </div>
-
-
-            <!-- Conversation -->
-
-            <div
-                id="conversation"
-                class="conversation"
-            >
-            </div>
-
-
-            <!-- Agent Activity -->
-
-            <div
-                id="agent-activity"
-                class="agent-workflow"
-            >
-            </div>
-
-
-            <!-- Agent Workflow -->
-
-            <div
-                id="agent-workflow"
-                class="branch-workflow"
-            >
-            </div>
-
-
-            <!-- Clear -->
-
-            <div class="conversation-area">
+                <button
+                    class="quick-button"
+                    data-prompt="Calculate 125 * 48."
+                >
+                    🧮 Calculator
+                </button>
 
                 <button
-                    id="clear-button"
-                    class="clear-button"
-                    type="button"
+                    class="quick-button"
+                    data-prompt="Search the latest AI news."
                 >
-                    Clear Conversation
+                    🌐 Web Search
+                </button>
+
+                <button
+                    class="quick-button"
+                    data-prompt="I have a mathematics exam in 7 days. Create a study plan, then decide what resources I need based on the plan."
+                >
+                    🤖 Adaptive Study Agent
                 </button>
 
             </div>
 
         </div>
 
+        <div
+            id="response"
+            class="response"
+        ></div>
+
+        <div
+            id="agentActivity"
+            class="agent-workflow"
+        ></div>
+
+        <div
+            id="conversationArea"
+            class="conversation-area"
+        >
+
+            <div class="conversation">
+
+                <div class="conversation-message assistant">
+
+                    <div class="message-header">
+                        EduAgent AI
+                    </div>
+
+                    <div class="message-content">
+                        Hello! I can help you with study planning,
+                        learning resources, calculations and research.
+                    </div>
+
+                </div>
+
+            </div>
+
+            <button
+                id="clearButton"
+                class="clear-button"
+            >
+                Clear Conversation
+            </button>
+
+        </div>
+
     </div>
+
+</div>
 `;
 
 
-// ==================================================
-// DOM REFERENCES
-// ==================================================
+const userInput = document.getElementById(
+    "userInput"
+);
 
-const responseContainer =
-    document.getElementById("response");
+const sendButton = document.getElementById(
+    "sendButton"
+);
 
-const conversationContainer =
-    document.getElementById("conversation");
+const responseContainer = document.getElementById(
+    "response"
+);
 
-const promptInput =
-    document.getElementById("prompt-input");
+const agentActivity = document.getElementById(
+    "agentActivity"
+);
 
-const askButton =
-    document.getElementById("ask-button");
+const voiceButton = document.getElementById(
+    "voiceButton"
+);
 
-const clearButton =
-    document.getElementById("clear-button");
+const voiceStatus = document.getElementById(
+    "voiceStatus"
+);
 
-const voiceButton =
-    document.getElementById("voice-button");
+const conversationElement = document.querySelector(
+    ".conversation"
+);
 
-const workflowContainer =
-    document.getElementById("agent-workflow");
+const clearButton = document.getElementById(
+    "clearButton"
+);
 
-const activityContainer =
-    document.getElementById("agent-activity");
-
-
-// ==================================================
-// UTILITY FUNCTIONS
-// ==================================================
 
 function escapeHtml(value) {
-    return String(value ?? "")
+
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -234,1112 +201,474 @@ function escapeHtml(value) {
 }
 
 
-function cleanWebText(text) {
-    return String(text || "")
-        .replace(/#{1,6}\s*/g, "")
-        .replace(/\*\*/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-}
+function formatAgentText(text) {
 
-
-function truncateText(text, maxLength = 240) {
-
-    const value = String(text || "");
-
-    if (value.length <= maxLength) {
-        return value;
+    if (!text) {
+        return "";
     }
 
-    return `${value.substring(0, maxLength)}...`;
+    let formatted = escapeHtml(text);
+
+    formatted = formatted.replace(
+        /\*\*(.*?)\*\*/g,
+        "<strong>$1</strong>"
+    );
+
+    formatted = formatted.replace(
+        /\n/g,
+        "<br>"
+    );
+
+    return formatted;
 }
 
 
-function isSafeUrl(url) {
+function getToolDisplayName(tool) {
 
-    try {
+    const names = {
+        study_plan: "Study Plan",
+        learning_resources: "Learning Resources",
+        calculator: "Calculator",
+        web_search: "Web Search"
+    };
 
-        const parsed = new URL(url);
+    return names[tool] || tool;
+}
 
-        return (
-            parsed.protocol === "http:" ||
-            parsed.protocol === "https:"
-        );
 
-    } catch {
+function getToolIcon(tool) {
 
-        return false;
+    const icons = {
+        study_plan: "📚",
+        learning_resources: "📖",
+        calculator: "🧮",
+        web_search: "🌐"
+    };
+
+    return icons[tool] || "🔧";
+}
+
+
+function getToolShortName(tool) {
+
+    const names = {
+        study_plan: "Study Plan",
+        learning_resources: "Resources",
+        calculator: "Calculator",
+        web_search: "Web Search"
+    };
+
+    return names[tool] || tool;
+}
+
+
+function buildStudyPlanHtml(result) {
+
+    if (!result) {
+        return "";
     }
+
+    const plan = result.plan || [];
+
+    if (!plan.length) {
+        return "";
+    }
+
+    return `
+        <div class="multi-tool-section">
+
+            <h3>
+                📚 ${escapeHtml(
+                    result.days || plan.length
+                )}-Day Study Plan
+            </h3>
+
+            ${plan.map(day => `
+                <div class="plan-day">
+
+                    <strong>
+                        Day ${escapeHtml(day.day)}
+                    </strong>
+
+                    <p>
+                        ${escapeHtml(day.focus)}
+                    </p>
+
+                    <small>
+                        ${escapeHtml(day.task)}
+                    </small>
+
+                </div>
+            `).join("")}
+
+        </div>
+    `;
 }
 
 
-// ==================================================
-// RESPONSE TEXT
-// ==================================================
+function buildLearningResourcesHtml(result) {
+
+    if (!result) {
+        return "";
+    }
+
+    const resources = result.resources || [];
+
+    if (!resources.length) {
+        return "";
+    }
+
+    return `
+        <div class="multi-tool-section">
+
+            <h3>
+                📖 Learning Resources
+            </h3>
+
+            ${resources.map(resource => `
+                <div class="resource-item">
+
+                    <strong>
+                        ${escapeHtml(resource.title)}
+                    </strong>
+
+                    <p>
+                        ${escapeHtml(resource.purpose)}
+                    </p>
+
+                </div>
+            `).join("")}
+
+        </div>
+    `;
+}
+
+
+function buildCalculatorHtml(result) {
+
+    if (!result) {
+        return "";
+    }
+
+    return `
+        <div class="multi-tool-section">
+
+            <h3>🧮 Calculation</h3>
+
+            <p>
+                <strong>
+                    Expression:
+                </strong>
+                ${escapeHtml(result.expression)}
+            </p>
+
+            <p>
+                <strong>
+                    Result:
+                </strong>
+                ${escapeHtml(result.result)}
+            </p>
+
+        </div>
+    `;
+}
+
+
+function buildWebSearchHtml(result) {
+
+    if (!result) {
+        return "";
+    }
+
+    const answer = result.answer || "";
+    const results = result.results || [];
+
+    return `
+        <div class="multi-tool-section">
+
+            <h3>🌐 Web Search</h3>
+
+            ${
+                answer
+                    ? `<p>${formatAgentText(answer)}</p>`
+                    : ""
+            }
+
+            ${
+                results.length
+                    ? `
+                        <div class="web-sources">
+
+                            ${results.map((item, index) => `
+                                <div class="web-source-card">
+
+                                    <div class="web-source-number">
+                                        ${index + 1}
+                                    </div>
+
+                                    <div class="web-source-content">
+
+                                        <strong>
+                                            ${escapeHtml(
+                                                item.title || "Source"
+                                            )}
+                                        </strong>
+
+                                        <p>
+                                            ${escapeHtml(
+                                                item.content || ""
+                                            )}
+                                        </p>
+
+                                    </div>
+
+                                </div>
+                            `).join("")}
+
+                        </div>
+                    `
+                    : ""
+            }
+
+        </div>
+    `;
+}
+
 
 function getResponseText(agentResult) {
 
     if (!agentResult) {
-        return "";
+        return "No response received.";
     }
 
-
-    const action =
-        agentResult.action ||
-        agentResult.tool ||
-        "";
-
-
-    const toolResult =
-        agentResult.tool_result ||
-        {};
-
-
-    // ----------------------------------------------
-    // MULTI-TOOL
-    // ----------------------------------------------
-
-    if (action === "multi_tool") {
-
-        if (agentResult.response) {
-
-            return String(
-                agentResult.response
-            );
-        }
-
-        const toolResults =
-            Array.isArray(
-                agentResult.tool_results
-            )
-                ? agentResult.tool_results
-                : [];
-
-        if (toolResults.length > 0) {
-
-            const tools =
-                toolResults
-                    .map(
-                        item =>
-                            item.tool
-                    )
-                    .join(", ");
-
-            return (
-                `Completed ${toolResults.length} `
-                + `agentic tool steps: ${tools}.`
-            );
-        }
-
-        return "Multi-tool workflow completed.";
+    if (agentResult.response) {
+        return agentResult.response;
     }
-
-
-    // ----------------------------------------------
-    // STUDY PLAN
-    // ----------------------------------------------
-
-    if (action === "study_plan") {
-
-        const topic =
-            toolResult.topic ||
-            agentResult.topic ||
-            "the requested topic";
-
-        const days =
-            toolResult.days ||
-            agentResult.days ||
-            "";
-
-        return (
-            `I've created a ${days}-day `
-            + `study plan for ${topic}.`
-        );
-    }
-
-
-    // ----------------------------------------------
-    // LEARNING RESOURCES
-    // ----------------------------------------------
-
-    if (action === "learning_resources") {
-
-        const topic =
-            toolResult.topic ||
-            agentResult.topic ||
-            "the requested topic";
-
-        return (
-            `I've prepared learning resources `
-            + `for ${topic}.`
-        );
-    }
-
-
-    // ----------------------------------------------
-    // CALCULATOR
-    // ----------------------------------------------
-
-    if (action === "calculator") {
-
-        const expression =
-            toolResult.expression ||
-            agentResult.expression ||
-            "";
-
-        const result =
-            toolResult.result ??
-            agentResult.result;
-
-        return `${expression} = ${result}`;
-    }
-
-
-    // ----------------------------------------------
-    // WEB SEARCH
-    // ----------------------------------------------
-
-    if (action === "web_search") {
-
-        return (
-            toolResult.answer ||
-            agentResult.answer ||
-            "I've completed the web search and gathered the latest results."
-        );
-    }
-
-
-    // ----------------------------------------------
-    // RESPONSE FIELD
-    // ----------------------------------------------
-
-    if (
-        typeof agentResult.response === "string"
-    ) {
-
-        try {
-
-            const parsed =
-                JSON.parse(
-                    agentResult.response
-                );
-
-            return (
-                parsed.summary ||
-                parsed.response ||
-                parsed.message ||
-                agentResult.response
-            );
-
-        } catch {
-
-            return agentResult.response;
-        }
-    }
-
 
     if (agentResult.message) {
         return agentResult.message;
     }
 
+    return "The agent completed the request.";
+}
 
-    if (
-        agentResult.result !== undefined
-    ) {
 
-        return String(
-            agentResult.result
-        );
+function renderSingleTool(agentResult) {
+
+    const action = agentResult.action;
+    const result = agentResult.tool_result;
+
+    let html = `
+        <div class="tool-label">
+            ${getToolIcon(action)}
+            ${escapeHtml(
+                getToolDisplayName(action)
+            )}
+        </div>
+    `;
+
+    if (action === "study_plan") {
+        html += buildStudyPlanHtml(result);
     }
 
+    else if (action === "learning_resources") {
+        html += buildLearningResourcesHtml(result);
+    }
 
-    return "";
+    else if (action === "calculator") {
+        html += buildCalculatorHtml(result);
+    }
+
+    else if (action === "web_search") {
+        html += buildWebSearchHtml(result);
+    }
+
+    html += `
+        <div class="final-response">
+
+            <h3>
+                Final Agent Response
+            </h3>
+
+            <div>
+                ${formatAgentText(
+                    getResponseText(agentResult)
+                )}
+            </div>
+
+        </div>
+    `;
+
+    responseContainer.innerHTML = html;
 }
 
 
-// ==================================================
-// RESPONSE TYPE
-// ==================================================
+function renderMultiTool(agentResult) {
 
-function getAction(agentResult) {
+    const results = agentResult.tool_results || [];
 
-    return (
-        agentResult?.action ||
-        agentResult?.tool ||
-        ""
-    );
-}
+    let html = "";
 
+    const isAdaptive =
+        agentResult.workflow === "adaptive";
 
-// ==================================================
-// CONVERSATION
-// ==================================================
-
-function addConversationMessage(
-    role,
-    content
-) {
-
-    const message =
-        document.createElement("div");
-
-    message.className =
-        `conversation-message ${role}`;
-
-    const label =
-        role === "user"
-            ? "You"
-            : "EduAgent AI";
-
-    const time =
-        new Date().toLocaleTimeString(
-            [],
-            {
-                hour: "2-digit",
-                minute: "2-digit"
+    html += `
+        <div class="tool-label">
+            🤖
+            ${isAdaptive
+                ? "Adaptive Multi-Agent Workflow"
+                : "Multi-Agent Workflow"
             }
-        );
-
-    message.innerHTML = `
-        <div class="message-header">
-
-            <strong>
-                ${label}
-            </strong>
-
-            <small>
-                ${time}
-            </small>
-
-        </div>
-
-        <div class="message-content">
-            ${content}
         </div>
     `;
 
-    conversationContainer.appendChild(
-        message
-    );
+    results.forEach((item, index) => {
 
-    conversationContainer.scrollTop =
-        conversationContainer.scrollHeight;
-}
-
-
-// ==================================================
-// RESPONSE CONTAINER
-// ==================================================
-
-function showResponse(content) {
-
-    responseContainer.innerHTML =
-        content;
-
-    responseContainer.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest"
-    });
-}
-
-
-// ==================================================
-// STUDY PLAN
-// ==================================================
-
-function buildStudyPlanHtml(
-    toolResult
-) {
-
-    const result =
-        toolResult || {};
-
-    const topic =
-        result.topic ||
-        "Study Topic";
-
-    const days =
-        result.days ||
-        0;
-
-    const plan =
-        Array.isArray(result.plan)
-            ? result.plan
-            : [];
-
-    let html = `
-        <span class="tool-label">
-            📚 Study Plan Tool
-        </span>
-
-        <h3>
-            ${escapeHtml(topic)}
-            — ${escapeHtml(days)} Day Plan
-        </h3>
-    `;
-
-
-    plan.forEach((item) => {
+        const tool = item.tool;
+        const result = item.result;
 
         html += `
-            <div class="plan-day">
+            <div class="multi-tool-step">
 
-                <strong>
-                    Day ${escapeHtml(item.day)}
-                </strong>
+                <div class="tool-label">
 
-                <p>
-                    ${escapeHtml(item.focus)}
-                </p>
+                    ${getToolIcon(tool)}
 
-                <small>
-                    ${escapeHtml(item.task)}
-                </small>
+                    Step ${index + 1}:
+                    ${escapeHtml(
+                        getToolDisplayName(tool)
+                    )}
 
+                </div>
+
+        `;
+
+        if (tool === "study_plan") {
+            html += buildStudyPlanHtml(result);
+        }
+
+        else if (tool === "learning_resources") {
+            html += buildLearningResourcesHtml(result);
+        }
+
+        else if (tool === "calculator") {
+            html += buildCalculatorHtml(result);
+        }
+
+        else if (tool === "web_search") {
+            html += buildWebSearchHtml(result);
+        }
+
+        html += `
             </div>
         `;
     });
 
+    html += `
+        <div class="final-response">
 
-    return html;
-}
+            <h3>
+                Final Agent Response
+            </h3>
 
+            <div>
+                ${formatAgentText(
+                    getResponseText(agentResult)
+                )}
+            </div>
 
-function renderStudyPlan(agentResult) {
-
-    const result =
-        agentResult.tool_result ||
-        agentResult;
-
-    showResponse(
-        buildStudyPlanHtml(result)
-    );
-}
-
-
-// ==================================================
-// LEARNING RESOURCES
-// ==================================================
-
-function buildLearningResourcesHtml(
-    toolResult
-) {
-
-    const result =
-        toolResult || {};
-
-    const topic =
-        result.topic ||
-        "Learning Topic";
-
-    const resources =
-        Array.isArray(result.resources)
-            ? result.resources
-            : [];
-
-    let html = `
-        <span class="tool-label">
-            📖 Learning Resources Tool
-        </span>
-
-        <h3>
-            Resources for ${escapeHtml(topic)}
-        </h3>
+        </div>
     `;
 
-
-    resources.forEach((resource) => {
-
-        html += `
-            <div class="resource-item">
-
-                <strong>
-                    ${escapeHtml(resource.title)}
-                </strong>
-
-                <p>
-                    ${escapeHtml(resource.purpose)}
-                </p>
-
-            </div>
-        `;
-    });
-
-
-    return html;
+    responseContainer.innerHTML = html;
 }
 
 
-function renderLearningResources(
-    agentResult
-) {
+function renderResponse(agentResult) {
 
-    const result =
-        agentResult.tool_result ||
-        agentResult;
-
-    showResponse(
-        buildLearningResourcesHtml(result)
-    );
-}
-
-
-// ==================================================
-// CALCULATOR
-// ==================================================
-
-function renderCalculator(
-    agentResult
-) {
-
-    const result =
-        agentResult.tool_result ||
-        agentResult;
-
-    const expression =
-        result.expression ||
-        "";
-
-    const value =
-        result.result;
-
-
-    showResponse(`
-        <span class="tool-label">
-            🧮 Calculator Tool
-        </span>
-
-        <h3>
-            Calculation Result
-        </h3>
-
-        <div class="plan-day">
-
-            <strong>
-                ${escapeHtml(expression)}
-            </strong>
-
+    if (!agentResult) {
+        responseContainer.innerHTML = `
             <p>
-                = ${escapeHtml(value)}
+                No response received from EduAgent.
             </p>
+        `;
 
-        </div>
-    `);
-}
-
-
-// ==================================================
-// WEB SEARCH
-// ==================================================
-
-function renderWebSearch(
-    agentResult
-) {
-
-    const result =
-        agentResult.tool_result ||
-        agentResult;
-
-    const query =
-        result.query ||
-        "";
-
-    const sources =
-        Array.isArray(result.results)
-            ? result.results
-            : [];
-
-    let summary =
-        result.answer ||
-        "";
-
+        return;
+    }
 
     if (
-        !summary &&
-        agentResult.response
+        agentResult.action === "multi_tool"
     ) {
 
-        try {
-
-            const parsed =
-                JSON.parse(
-                    agentResult.response
-                );
-
-            summary =
-                parsed.summary ||
-                parsed.answer ||
-                parsed.response ||
-                "";
-
-        } catch {
-
-            summary =
-                agentResult.response;
-        }
-    }
-
-
-    summary =
-        cleanWebText(summary);
-
-
-    let html = `
-        <span class="tool-label">
-            🌐 Web Search Tool
-        </span>
-
-        <h3>
-            AI Research Summary
-        </h3>
-
-        <div class="web-search-query">
-            <strong>Query:</strong>
-            ${escapeHtml(query)}
-        </div>
-    `;
-
-
-    if (summary) {
-
-        html += `
-            <div class="web-search-summary">
-
-                <div class="web-summary-title">
-                    Grounded Research
-                </div>
-
-                <p>
-                    ${escapeHtml(summary)}
-                </p>
-
-            </div>
-        `;
-    }
-
-
-    if (sources.length > 0) {
-
-        html += `
-            <div class="web-sources-title">
-                Grounded Sources
-            </div>
-
-            <div class="web-sources">
-        `;
-
-
-        sources.forEach(
-            (source, index) => {
-
-                const title =
-                    cleanWebText(
-                        source.title ||
-                        `Source ${index + 1}`
-                    );
-
-                const content =
-                    cleanWebText(
-                        source.content ||
-                        source.snippet ||
-                        ""
-                    );
-
-                const url =
-                    source.url ||
-                    "";
-
-                const score =
-                    source.score !== undefined
-                        ? `${Math.round(
-                            Number(source.score) * 100
-                        )}% relevance`
-                        : "Source";
-
-
-                const safeUrl =
-                    isSafeUrl(url)
-                        ? url
-                        : "";
-
-
-                html += `
-                    <div class="web-source-card">
-
-                        <div class="web-source-number">
-                            ${index + 1}
-                        </div>
-
-                        <div class="web-source-content">
-
-                            <strong>
-                                ${escapeHtml(title)}
-                            </strong>
-
-                            <p>
-                                ${escapeHtml(
-                                    truncateText(
-                                        content,
-                                        240
-                                    )
-                                )}
-                            </p>
-
-                            <div class="web-source-meta">
-
-                                <span>
-                                    ${escapeHtml(score)}
-                                </span>
-
-                                ${
-                                    safeUrl
-                                        ? `
-                                            <a
-                                                href="${escapeHtml(
-                                                    safeUrl
-                                                )}"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                View Source
-                                            </a>
-                                        `
-                                        : ""
-                                }
-
-                            </div>
-
-                        </div>
-
-                    </div>
-                `;
-            }
+        renderMultiTool(
+            agentResult
         );
 
-
-        html += `
-            </div>
-        `;
-
-    } else {
-
-        html += `
-            <div class="web-search-summary">
-
-                <p>
-                    No individual sources were returned
-                    for this search.
-                </p>
-
-            </div>
-        `;
+        return;
     }
 
+    if (
+        agentResult.action === "general"
+    ) {
 
-    showResponse(html);
-}
+        responseContainer.innerHTML = `
+            <div class="final-response">
 
-
-// ==================================================
-// MULTI-TOOL RESPONSE
-// ==================================================
-
-function renderMultiTool(
-    agentResult
-) {
-
-    const toolResults =
-        Array.isArray(
-            agentResult.tool_results
-        )
-            ? agentResult.tool_results
-            : [];
-
-
-    let html = `
-
-        <span class="tool-label">
-            🤖 Multi-Agent Workflow
-        </span>
-
-        <h3>
-            Agentic Learning Workflow Completed
-        </h3>
-
-        <p>
-            EduAgent planned and executed
-            multiple tools for your request.
-        </p>
-
-    `;
-
-
-    toolResults.forEach(
-        (item, index) => {
-
-            const tool =
-                item.tool || "";
-
-            const result =
-                item.result || {};
-
-
-            html += `
-
-                <div class="plan-day">
-
-                    <strong>
-                        Step ${index + 1} —
-                        ${escapeHtml(
-                            getToolDisplayName(tool)
-                        )}
-                    </strong>
-
-                    <p>
-                        ${escapeHtml(
-                            getToolStatus(result)
-                        )}
-                    </p>
-
-                </div>
-
-            `;
-
-
-            if (
-                tool === "study_plan"
-            ) {
-
-                html += `
-                    <div class="multi-tool-section">
-                        ${buildStudyPlanHtml(result)}
-                    </div>
-                `;
-            }
-
-
-            if (
-                tool === "learning_resources"
-            ) {
-
-                html += `
-                    <div class="multi-tool-section">
-                        ${buildLearningResourcesHtml(result)}
-                    </div>
-                `;
-            }
-
-
-            if (
-                tool === "calculator"
-            ) {
-
-                const expression =
-                    result.expression ||
-                    "";
-
-                const value =
-                    result.result;
-
-
-                html += `
-
-                    <div class="multi-tool-section">
-
-                        <span class="tool-label">
-                            🧮 Calculator
-                        </span>
-
-                        <p>
-                            ${escapeHtml(
-                                expression
-                            )}
-                            =
-                            ${escapeHtml(
-                                value
-                            )}
-                        </p>
-
-                    </div>
-
-                `;
-            }
-
-
-            if (
-                tool === "web_search"
-            ) {
-
-                const summary =
-                    cleanWebText(
-                        result.answer ||
-                        ""
-                    );
-
-
-                html += `
-
-                    <div class="multi-tool-section">
-
-                        <span class="tool-label">
-                            🌐 Web Research
-                        </span>
-
-                        <p>
-                            ${escapeHtml(
-                                summary ||
-                                "Web research completed."
-                            )}
-                        </p>
-
-                    </div>
-
-                `;
-            }
-
-        }
-    );
-
-
-    if (agentResult.response) {
-
-        html += `
-
-            <div class="web-search-summary">
-
-                <div class="web-summary-title">
+                <h3>
                     Final Agent Response
-                </div>
+                </h3>
 
-                <p>
+                <div>
                     ${formatAgentText(
                         agentResult.response
                     )}
-                </p>
+                </div>
 
             </div>
-
         `;
+
+        return;
     }
 
-
-    showResponse(html);
-}
-
-
-function getToolDisplayName(
-    tool
-) {
-
-    const names = {
-
-        study_plan:
-            "Study Plan Tool",
-
-        learning_resources:
-            "Learning Resources Tool",
-
-        calculator:
-            "Calculator Tool",
-
-        web_search:
-            "Web Search Tool"
-
-    };
-
-
-    return (
-        names[tool] ||
-        "Agent Tool"
+    renderSingleTool(
+        agentResult
     );
 }
 
 
-function getToolStatus(
-    result
-) {
+function getToolStatus(trace, tool) {
 
-    if (
-        result &&
-        result.error
-    ) {
-
-        return (
-            "Tool execution returned an error."
-        );
+    if (!trace) {
+        return "pending";
     }
 
-
-    if (
-        result &&
-        result.message
-    ) {
-
-        return result.message;
-    }
-
-
-    return "Tool executed successfully.";
-}
-
-
-function formatAgentText(
-    text
-) {
-
-    return escapeHtml(
-        String(text || "")
-    ).replace(
-        /\n/g,
-        "<br>"
+    const found = trace.some(
+        item =>
+            item.stage === "tool_execution" &&
+            item.message &&
+            item.message.includes(tool)
     );
+
+    return found
+        ? "completed"
+        : "pending";
 }
 
 
-// ==================================================
-// GENERAL AI
-// ==================================================
-
-function renderGeneralResponse(
+function buildAdaptiveWorkflow(
     agentResult
 ) {
 
-    const text =
-        getResponseText(agentResult);
+    const trace = agentResult.trace || [];
 
-    const formatted =
-        formatAgentText(text);
+    const results =
+        agentResult.tool_results || [];
 
-
-    showResponse(`
-
-        <span class="tool-label">
-            🤖 General AI
-        </span>
-
-        <h3>
-            EduAgent AI
-        </h3>
-
-        <p>
-            ${formatted}
-        </p>
-
-    `);
-}
-
-
-// ==================================================
-// RESPONSE ROUTER
-// ==================================================
-
-function renderResponse(
-    agentResult
-) {
-
-    const action =
-        getAction(agentResult);
-
-
-    switch (action) {
-
-        case "study_plan":
-
-            renderStudyPlan(
-                agentResult
-            );
-
-            break;
-
-
-        case "learning_resources":
-
-            renderLearningResources(
-                agentResult
-            );
-
-            break;
-
-
-        case "calculator":
-
-            renderCalculator(
-                agentResult
-            );
-
-            break;
-
-
-        case "web_search":
-
-            renderWebSearch(
-                agentResult
-            );
-
-            break;
-
-
-        case "multi_tool":
-
-            renderMultiTool(
-                agentResult
-            );
-
-            break;
-
-
-        case "general":
-
-        default:
-
-            renderGeneralResponse(
-                agentResult
-            );
-
-            break;
-    }
-}
-
-
-// ==================================================
-// AGENT ACTIVITY
-// ==================================================
-
-function renderAgentActivity(
-    agentResult
-) {
-
-    const action =
-        getAction(agentResult);
-
-
-    if (
-        action === "multi_tool"
-    ) {
-
-        const toolResults =
-            Array.isArray(
-                agentResult.tool_results
-            )
-                ? agentResult.tool_results
-                : [];
-
-
-        const toolNames =
-            toolResults
-                .map(
-                    item =>
-                        getToolDisplayName(
-                            item.tool
-                        )
-                )
-                .join(" + ");
-
-
-        activityContainer.innerHTML = `
+    let html = `
+        <div class="branch-workflow">
 
             <div class="branch-workflow-title">
-                Agent Activity
+                Adaptive Multi-Agent Workflow
             </div>
 
             <div class="branch-main">
@@ -1351,12 +680,12 @@ function renderAgentActivity(
                     </div>
 
                     <strong>
-                        Understanding Request
+                        User Request
                     </strong>
 
-                    <small>
+                    <span>
                         Completed ✓
-                    </small>
+                    </span>
 
                 </div>
 
@@ -1374,9 +703,9 @@ function renderAgentActivity(
                         AI Brain
                     </strong>
 
-                    <small>
+                    <span>
                         Intent detected ✓
-                    </small>
+                    </span>
 
                 </div>
 
@@ -1384,7 +713,7 @@ function renderAgentActivity(
                     ↓
                 </div>
 
-                <div class="branch-node selected">
+                <div class="branch-node completed">
 
                     <div class="branch-icon">
                         📋
@@ -1394,619 +723,395 @@ function renderAgentActivity(
                         Planner
                     </strong>
 
-                    <small>
-                        ${escapeHtml(
-                            `${toolResults.length} steps`
-                        )}
-                    </small>
+                    <span>
+                        Adaptive planning ✓
+                    </span>
 
                 </div>
 
-            </div>
+                <div class="branch-arrow">
+                    ↓
+                </div>
 
-            <div class="branch-status">
-                Multi-tool plan executed:
-                ${escapeHtml(toolNames)}
+    `;
+
+    results.forEach((item, index) => {
+
+        const status =
+            getToolStatus(
+                trace,
+                item.tool
+            );
+
+        html += `
+            <div class="branch-node ${status}">
+
+                <div class="branch-icon">
+                    ${getToolIcon(item.tool)}
+                </div>
+
+                <strong>
+                    ${escapeHtml(
+                        getToolShortName(item.tool)
+                    )}
+                </strong>
+
+                <span>
+                    Step ${index + 1} ✓
+                </span>
+
             </div>
         `;
 
-        return;
-    }
+        if (index < results.length - 1) {
 
-
-    const toolName =
-        getWorkflowToolName(
-            agentResult
-        );
-
-
-    activityContainer.innerHTML = `
-
-        <div class="branch-workflow-title">
-            Agent Activity
-        </div>
-
-        <div class="branch-main">
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    👤
+            html += `
+                <div class="branch-arrow">
+                    ↓
                 </div>
 
-                <strong>
-                    Understanding Request
-                </strong>
+                <div class="branch-node completed">
 
-                <small>
-                    Completed ✓
-                </small>
+                    <div class="branch-icon">
+                        🧠
+                    </div>
 
-            </div>
+                    <strong>
+                        Adaptive Reasoning
+                    </strong>
 
-            <div class="branch-arrow">
-                ↓
-            </div>
+                    <span>
+                        Intermediate result evaluated ✓
+                    </span>
 
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    🧠
                 </div>
 
-                <strong>
-                    Detecting Intent
-                </strong>
+                <div class="branch-arrow">
+                    ↓
+                </div>
+            `;
+        }
+    });
 
-                <small>
-                    Completed ✓
-                </small>
+    html += `
 
-            </div>
-
-            <div class="branch-arrow">
-                ↓
-            </div>
-
-            <div class="branch-node selected">
-
-                <div class="branch-icon">
-                    🔧
+                <div class="branch-arrow">
+                    ↓
                 </div>
 
-                <strong>
-                    Tool Router
-                </strong>
+                <div class="branch-node completed">
 
-                <small>
-                    ${escapeHtml(toolName)}
-                </small>
+                    <div class="branch-icon">
+                        🔗
+                    </div>
+
+                    <strong>
+                        Result Aggregator
+                    </strong>
+
+                    <span>
+                        Results combined ✓
+                    </span>
+
+                </div>
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        💬
+                    </div>
+
+                    <strong>
+                        Final Response
+                    </strong>
+
+                    <span>
+                        Completed ✓
+                    </span>
+
+                </div>
 
             </div>
 
-        </div>
+            <div class="workflow-status">
+                Adaptive agent workflow completed •
+                ${results.length} tool execution(s)
+            </div>
 
-        <div class="branch-status">
-            Agent execution completed successfully.
         </div>
     `;
+
+    return html;
 }
 
-
-// ==================================================
-// WORKFLOW TOOL NAME
-// ==================================================
-
-function getWorkflowToolName(
-    agentResult
-) {
-
-    const action =
-        getAction(agentResult);
-
-
-    const names = {
-
-        study_plan:
-            "Study Plan Tool",
-
-        learning_resources:
-            "Learning Resources Tool",
-
-        calculator:
-            "Calculator Tool",
-
-        web_search:
-            "Web Search Tool",
-
-        general:
-            "General AI",
-
-        multi_tool:
-            "Multi-Agent Planner"
-
-    };
-
-
-    return (
-        names[action] ||
-        "AI Response"
-    );
-}
-
-
-// ==================================================
-// MULTI-TOOL WORKFLOW
-// ==================================================
 
 function buildMultiToolWorkflow(
     agentResult
 ) {
 
-    const toolResults =
-        Array.isArray(
-            agentResult.tool_results
-        )
-            ? agentResult.tool_results
-            : [];
+    const trace = agentResult.trace || [];
+    const results = agentResult.tool_results || [];
 
+    let html = `
+        <div class="branch-workflow">
 
-    const toolActions =
-        toolResults.map(
-            item => item.tool
-        );
+            <div class="branch-workflow-title">
+                Multi-Agent Workflow
+            </div>
 
+            <div class="branch-main">
 
-    let toolNodes = "";
+                <div class="branch-node completed">
 
-
-    toolResults.forEach(
-        (item, index) => {
-
-            const tool =
-                item.tool;
-
-
-            toolNodes += `
-
-                <div class="branch-tool">
-
-                    <div
-                        class="branch-node selected"
-                    >
-
-                        <div class="branch-icon">
-                            ${getToolIcon(tool)}
-                        </div>
-
-                        <strong>
-                            ${escapeHtml(
-                                getToolShortName(
-                                    tool
-                                )
-                            )}
-                        </strong>
-
-                        <small>
-                            Step ${index + 1} ✓
-                        </small>
-
+                    <div class="branch-icon">
+                        👤
                     </div>
 
+                    <strong>
+                        User Request
+                    </strong>
+
+                    <span>
+                        Completed ✓
+                    </span>
+
                 </div>
 
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        🧠
+                    </div>
+
+                    <strong>
+                        AI Brain
+                    </strong>
+
+                    <span>
+                        Intent detected ✓
+                    </span>
+
+                </div>
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        📋
+                    </div>
+
+                    <strong>
+                        Planner
+                    </strong>
+
+                    <span>
+                        ${results.length} tool steps ✓
+                    </span>
+
+                </div>
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+    `;
+
+    results.forEach((item, index) => {
+
+        html += `
+            <div class="branch-node completed">
+
+                <div class="branch-icon">
+                    ${getToolIcon(item.tool)}
+                </div>
+
+                <strong>
+                    ${escapeHtml(
+                        getToolShortName(item.tool)
+                    )}
+                </strong>
+
+                <span>
+                    Step ${index + 1} ✓
+                </span>
+
+            </div>
+        `;
+
+        if (index < results.length - 1) {
+
+            html += `
+                <div class="branch-arrow">
+                    ↓
+                </div>
             `;
         }
-    );
+    });
 
+    html += `
 
-    const toolSummary =
-        toolActions
-            .map(
-                tool =>
-                    getToolDisplayName(tool)
-            )
-            .join(" + ");
-
-
-    workflowContainer.innerHTML = `
-
-        <div class="branch-workflow-title">
-            Multi-Agent Workflow
-        </div>
-
-        <div class="branch-main">
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    👤
+                <div class="branch-arrow">
+                    ↓
                 </div>
 
-                <strong>
-                    User Request
-                </strong>
+                <div class="branch-node completed">
 
-                <small>
-                    Completed ✓
-                </small>
+                    <div class="branch-icon">
+                        🔗
+                    </div>
 
-            </div>
+                    <strong>
+                        Result Aggregator
+                    </strong>
 
-            <div class="branch-arrow">
-                ↓
-            </div>
+                    <span>
+                        Results combined ✓
+                    </span>
 
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    🧠
                 </div>
 
-                <strong>
-                    AI Brain
-                </strong>
-
-                <small>
-                    Intent detected ✓
-                </small>
-
-            </div>
-
-            <div class="branch-arrow">
-                ↓
-            </div>
-
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    📋
+                <div class="branch-arrow">
+                    ↓
                 </div>
 
-                <strong>
-                    Planner
-                </strong>
+                <div class="branch-node completed">
 
-                <small>
-                    ${toolResults.length} tool steps ✓
-                </small>
+                    <div class="branch-icon">
+                        💬
+                    </div>
 
-            </div>
+                    <strong>
+                        Final Response
+                    </strong>
 
-            <div class="branch-arrow">
-                ↓
-            </div>
+                    <span>
+                        Completed ✓
+                    </span>
 
-
-            <div class="branch-tools">
-
-                ${toolNodes}
-
-            </div>
-
-
-            <div class="branch-arrow">
-                ↓
-            </div>
-
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    🔗
                 </div>
 
-                <strong>
-                    Result Aggregator
-                </strong>
-
-                <small>
-                    Results combined ✓
-                </small>
-
             </div>
 
-            <div class="branch-arrow">
-                ↓
+            <div class="workflow-status">
+                Multi-agent workflow completed •
+                ${results.map(
+                    item =>
+                        getToolDisplayName(
+                            item.tool
+                        )
+                ).join(" + ")}
             </div>
 
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    💬
-                </div>
-
-                <strong>
-                    Final Response
-                </strong>
-
-                <small>
-                    Completed ✓
-                </small>
-
-            </div>
-
-        </div>
-
-        <div class="branch-status">
-            Multi-agent workflow completed •
-            ${escapeHtml(toolSummary)}
         </div>
     `;
+
+    return html;
 }
 
-
-function getToolIcon(
-    tool
-) {
-
-    const icons = {
-
-        study_plan:
-            "📚",
-
-        learning_resources:
-            "📖",
-
-        calculator:
-            "🧮",
-
-        web_search:
-            "🌐"
-
-    };
-
-
-    return (
-        icons[tool] ||
-        "🔧"
-    );
-}
-
-
-function getToolShortName(
-    tool
-) {
-
-    const names = {
-
-        study_plan:
-            "Study Plan",
-
-        learning_resources:
-            "Resources",
-
-        calculator:
-            "Calculator",
-
-        web_search:
-            "Web Search"
-
-    };
-
-
-    return (
-        names[tool] ||
-        "Tool"
-    );
-}
-
-
-// ==================================================
-// SINGLE TOOL WORKFLOW
-// ==================================================
 
 function buildSingleToolWorkflow(
     agentResult
 ) {
 
     const action =
-        getAction(agentResult);
-
-    const toolName =
-        getWorkflowToolName(
-            agentResult
-        );
-
-
-    workflowContainer.innerHTML = `
-
-        <div class="branch-workflow-title">
-            Agent Workflow
-        </div>
-
-        <div class="branch-main">
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    👤
-                </div>
-
-                <strong>
-                    User Request
-                </strong>
-
-                <small>
-                    Completed ✓
-                </small>
-
-            </div>
-
-            <div class="branch-arrow">
-                ↓
-            </div>
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    🧠
-                </div>
-
-                <strong>
-                    AI Brain
-                </strong>
-
-                <small>
-                    Intent detected ✓
-                </small>
-
-            </div>
-
-            <div class="branch-arrow">
-                ↓
-            </div>
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    🔀
-                </div>
-
-                <strong>
-                    Tool Router
-                </strong>
-
-                <small>
-                    Tool selected ✓
-                </small>
-
-            </div>
-
-            <div class="branch-arrow">
-                ↓
-            </div>
-
-            <div class="branch-tools">
-
-                ${createBranchTool(
-                    "study_plan",
-                    "📚",
-                    "Study Plan",
-                    action
-                )}
-
-                ${createBranchTool(
-                    "calculator",
-                    "🧮",
-                    "Calculator",
-                    action
-                )}
-
-                ${createBranchTool(
-                    "learning_resources",
-                    "📖",
-                    "Resources",
-                    action
-                )}
-
-                ${createBranchTool(
-                    "web_search",
-                    "🌐",
-                    "Web Search",
-                    action
-                )}
-
-                ${createBranchTool(
-                    "general",
-                    "🤖",
-                    "General AI",
-                    action
-                )}
-
-            </div>
-
-            <div class="branch-arrow">
-                ↓
-            </div>
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    ⚙️
-                </div>
-
-                <strong>
-                    Tool Result
-                </strong>
-
-                <small>
-                    ${escapeHtml(toolName)}
-                </small>
-
-            </div>
-
-            <div class="branch-arrow">
-                ↓
-            </div>
-
-            <div class="branch-node completed">
-
-                <div class="branch-icon">
-                    💬
-                </div>
-
-                <strong>
-                    Response
-                </strong>
-
-                <small>
-                    Completed ✓
-                </small>
-
-            </div>
-
-        </div>
-
-        <div class="branch-status">
-            Workflow completed successfully •
-            ${escapeHtml(toolName)}
-        </div>
-    `;
-}
-
-
-function createBranchTool(
-    action,
-    icon,
-    label,
-    selectedAction
-) {
-
-    const selected =
-        action === selectedAction;
-
+        agentResult.action || "general";
 
     return `
+        <div class="agent-workflow">
 
-        <div class="branch-tool">
+            <div class="workflow-title">
+                Agent Workflow
+            </div>
 
-            <div
-                class="branch-node ${
-                    selected
-                        ? "selected"
-                        : "pending"
-                }"
-            >
+            <div class="workflow-canvas">
 
-                <div class="branch-icon">
-                    ${icon}
+                <div class="workflow-node completed">
+
+                    <div class="workflow-icon">
+                        👤
+                    </div>
+
+                    <strong>
+                        User Request
+                    </strong>
+
+                    <span>
+                        Completed ✓
+                    </span>
+
                 </div>
 
-                <strong>
-                    ${label}
-                </strong>
+                <div class="workflow-arrow">
+                    ↓
+                </div>
 
-                <small>
-                    ${
-                        selected
-                            ? "Selected ✓"
-                            : "Available"
-                    }
-                </small>
+                <div class="workflow-node completed">
+
+                    <div class="workflow-icon">
+                        🧠
+                    </div>
+
+                    <strong>
+                        AI Brain
+                    </strong>
+
+                    <span>
+                        Intent detected ✓
+                    </span>
+
+                </div>
+
+                <div class="workflow-arrow">
+                    ↓
+                </div>
+
+                <div class="workflow-node completed">
+
+                    <div class="workflow-icon">
+                        🔧
+                    </div>
+
+                    <strong>
+                        ${escapeHtml(
+                            getToolDisplayName(action)
+                        )}
+                    </strong>
+
+                    <span>
+                        Tool executed ✓
+                    </span>
+
+                </div>
+
+                <div class="workflow-arrow">
+                    ↓
+                </div>
+
+                <div class="workflow-node completed">
+
+                    <div class="workflow-icon">
+                        💬
+                    </div>
+
+                    <strong>
+                        Final Response
+                    </strong>
+
+                    <span>
+                        Completed ✓
+                    </span>
+
+                </div>
 
             </div>
 
@@ -2015,93 +1120,210 @@ function createBranchTool(
 }
 
 
-// ==================================================
-// BUILD WORKFLOW ROUTER
-// ==================================================
-
-function buildWorkflow(
-    agentResult
-) {
-
-    const action =
-        getAction(agentResult);
-
+function buildWorkflow(agentResult) {
 
     if (
-        action === "multi_tool"
+        agentResult &&
+        agentResult.action === "multi_tool"
     ) {
 
-        buildMultiToolWorkflow(
+        if (
+            agentResult.workflow === "adaptive"
+        ) {
+
+            return buildAdaptiveWorkflow(
+                agentResult
+            );
+        }
+
+        return buildMultiToolWorkflow(
             agentResult
         );
-
-        return;
     }
 
-
-    buildSingleToolWorkflow(
+    return buildSingleToolWorkflow(
         agentResult
     );
 }
 
 
-// ==================================================
-// API REQUEST
-// ==================================================
-
-async function sendMessage(
-    prompt
+function renderAgentActivity(
+    agentResult
 ) {
 
-    const cleanPrompt =
-        String(prompt || "").trim();
-
-
-    if (!cleanPrompt) {
+    if (!agentResult) {
+        agentActivity.innerHTML = "";
         return;
     }
 
+    const trace =
+        agentResult.trace || [];
+
+    let activityHtml = `
+        <div class="branch-workflow">
+
+            <div class="branch-workflow-title">
+                Agent Activity
+            </div>
+
+            <div class="branch-main">
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        👤
+                    </div>
+
+                    <strong>
+                        Understanding Request
+                    </strong>
+
+                    <span>
+                        Completed ✓
+                    </span>
+
+                </div>
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        🧠
+                    </div>
+
+                    <strong>
+                        AI Brain
+                    </strong>
+
+                    <span>
+                        Intent detected ✓
+                    </span>
+
+                </div>
+    `;
+
+    if (
+        agentResult.action === "multi_tool"
+    ) {
+
+        const adaptive =
+            agentResult.workflow === "adaptive";
+
+        activityHtml += `
+
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        📋
+                    </div>
+
+                    <strong>
+                        Planner
+                    </strong>
+
+                    <span>
+                        ${
+                            adaptive
+                                ? "Adaptive planning"
+                                : (
+                                    agentResult
+                                        .tool_results
+                                        ?.length || 0
+                                ) + " steps"
+                        }
+                    </span>
+
+                </div>
+        `;
+
+        if (adaptive) {
+
+            activityHtml += `
+                <div class="branch-arrow">
+                    ↓
+                </div>
+
+                <div class="branch-node completed">
+
+                    <div class="branch-icon">
+                        🧠
+                    </div>
+
+                    <strong>
+                        Adaptive Reasoning
+                    </strong>
+
+                    <span>
+                        Intermediate results evaluated ✓
+                    </span>
+
+                </div>
+            `;
+        }
+    }
+
+    activityHtml += `
+
+            </div>
+
+        </div>
+    `;
+
+    agentActivity.innerHTML =
+        activityHtml;
+
+    const workflowHtml =
+        buildWorkflow(
+            agentResult
+        );
+
+    agentActivity.innerHTML +=
+        workflowHtml;
+}
+
+
+async function sendMessage(
+    prompt = null
+) {
+
+    const message =
+        prompt ||
+        userInput.value.trim();
+
+    if (!message) {
+        return;
+    }
+
+    userInput.value = "";
+
+    responseContainer.innerHTML = `
+        <div class="tool-label">
+            🧠 EduAgent is thinking...
+        </div>
+
+        <p>
+            Understanding request, planning tools
+            and executing the workflow...
+        </p>
+    `;
+
+    agentActivity.innerHTML = "";
 
     addConversationMessage(
         "user",
-        escapeHtml(cleanPrompt)
+        message
     );
 
-
-    conversationHistory.push({
-        role: "user",
-        content: cleanPrompt
-    });
-
-
-    promptInput.value = "";
-
-    askButton.disabled = true;
-
-    askButton.textContent =
-        "Thinking...";
-
-
-    showResponse(`
-
-        <span class="tool-label">
-            🧠 AI Brain
-        </span>
-
-        <h3>
-            Processing your request...
-        </h3>
-
-        <p>
-            EduAgent is understanding your request,
-            planning the required tools,
-            and executing the agentic workflow.
-        </p>
-
-    `);
-
-
     try {
+
+        sendButton.disabled = true;
 
         const response =
             await fetch(
@@ -2110,360 +1332,301 @@ async function sendMessage(
                     method: "POST",
 
                     headers: {
-                        "Content-Type":
-                            "application/json"
+                        "Content-Type": "application/json"
                     },
 
                     body: JSON.stringify({
-                        user_input:
-                            cleanPrompt
+                        user_input: message
                     })
                 }
             );
 
+        if (!response.ok) {
+
+            throw new Error(
+                `Server error: ${response.status}`
+            );
+        }
 
         const data =
             await response.json();
 
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                data.message ||
-                `Request failed with status ${response.status}`
-            );
-        }
-
-
         const agentResult =
-            data.agent_result ||
-            data;
+            data.agent_result || data;
 
-
-        // Render main result
+        conversation.push({
+            user: message,
+            agent: agentResult
+        });
 
         renderResponse(
             agentResult
         );
 
-
-        // Render activity
-
         renderAgentActivity(
             agentResult
         );
 
-
-        // Render workflow
-
-        buildWorkflow(
-            agentResult
-        );
-
-
-        // Conversation text
-
-        const assistantText =
-            getResponseText(
-                agentResult
-            );
-
-
-        conversationHistory.push({
-            role: "assistant",
-            content:
-                assistantText
-        });
-
-
         addConversationMessage(
             "assistant",
-            escapeHtml(
-                assistantText ||
-                "Response completed."
-            ).replace(
-                /\n/g,
-                "<br>"
+            getResponseText(
+                agentResult
             )
         );
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
-        console.error(
-            "EduAgent request failed:",
-            error
+        responseContainer.innerHTML = `
+            <div class="final-response">
+
+                <h3>
+                    Error
+                </h3>
+
+                <p>
+                    ${escapeHtml(
+                        error.message
+                    )}
+                </p>
+
+            </div>
+        `;
+
+        addConversationMessage(
+            "assistant",
+            "I could not connect to the EduAgent backend."
         );
 
+    }
 
-        showResponse(`
+    finally {
 
-            <span class="tool-label">
-                ⚠️ Error
-            </span>
+        sendButton.disabled = false;
 
-            <h3>
-                Something went wrong
-            </h3>
-
-            <p>
-                ${escapeHtml(
-                    error.message
-                )}
-            </p>
-
-        `);
-
-    } finally {
-
-        askButton.disabled =
-            false;
-
-        askButton.textContent =
-            "Ask";
-
-        promptInput.focus();
+        userInput.focus();
     }
 }
 
 
-// ==================================================
-// QUICK ACTIONS
-// ==================================================
+function addConversationMessage(
+    role,
+    message
+) {
 
-function setupQuickActions() {
-
-    const buttons =
-        document.querySelectorAll(
-            "[data-prompt]"
+    const wrapper =
+        document.createElement(
+            "div"
         );
 
+    wrapper.className =
+        `conversation-message ${role}`;
 
-    buttons.forEach(
-        (button) => {
+    wrapper.innerHTML = `
 
-            button.addEventListener(
-                "click",
-                () => {
+        <div class="message-header">
 
-                    const prompt =
-                        button.getAttribute(
-                            "data-prompt"
-                        );
-
-                    sendMessage(
-                        prompt
-                    );
-                }
-            );
-        }
-    );
-}
-
-
-// ==================================================
-// VOICE RECOGNITION
-// ==================================================
-
-function setupVoiceRecognition() {
-
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
-
-
-    if (!SpeechRecognition) {
-
-        voiceButton.style.display =
-            "none";
-
-        return;
-    }
-
-
-    recognition =
-        new SpeechRecognition();
-
-
-    recognition.continuous =
-        false;
-
-    recognition.interimResults =
-        false;
-
-    recognition.lang =
-        "en-US";
-
-
-    recognition.onstart = () => {
-
-        isListening = true;
-
-        voiceButton.classList.add(
-            "listening"
-        );
-
-        voiceButton.textContent =
-            "🔴";
-    };
-
-
-    recognition.onresult = (
-        event
-    ) => {
-
-        const transcript =
-            event.results[0][0]
-                .transcript;
-
-        promptInput.value =
-            transcript;
-    };
-
-
-    recognition.onerror = (
-        event
-    ) => {
-
-        console.error(
-            "Voice recognition error:",
-            event.error
-        );
-    };
-
-
-    recognition.onend = () => {
-
-        isListening = false;
-
-        voiceButton.classList.remove(
-            "listening"
-        );
-
-        voiceButton.textContent =
-            "🎙️";
-    };
-
-
-    voiceButton.addEventListener(
-        "click",
-        () => {
-
-            if (isListening) {
-
-                recognition.stop();
-
-                return;
+            ${
+                role === "user"
+                    ? "You"
+                    : "EduAgent AI"
             }
 
+        </div>
 
-            try {
+        <div class="message-content">
 
-                recognition.start();
+            ${formatAgentText(
+                message
+            )}
 
-            } catch (error) {
-
-                console.error(
-                    "Voice start error:",
-                    error
-                );
-            }
-        }
-    );
-}
-
-
-// ==================================================
-// CLEAR CONVERSATION
-// ==================================================
-
-function clearConversation() {
-
-    conversationHistory = [];
-
-    conversationContainer.innerHTML =
-        "";
-
-
-    responseContainer.innerHTML = `
-
-        <h3>
-            Welcome to EduAgent AI
-        </h3>
-
-        <p>
-            Ask a question or choose a quick
-            action to see the agentic workflow
-            in action.
-        </p>
+        </div>
 
     `;
 
+    conversationElement.appendChild(
+        wrapper
+    );
 
-    activityContainer.innerHTML =
-        "";
-
-    workflowContainer.innerHTML =
-        "";
-
-    promptInput.value =
-        "";
-
-    promptInput.focus();
+    wrapper.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+    });
 }
 
 
-// ==================================================
-// EVENT LISTENERS
-// ==================================================
-
-askButton.addEventListener(
+sendButton.addEventListener(
     "click",
-    () => {
+    () => sendMessage()
+);
 
-        sendMessage(
-            promptInput.value
-        );
+
+userInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            sendMessage();
+        }
+
     }
 );
 
 
-promptInput.addEventListener(
-    "keydown",
-    (event) => {
+document.querySelectorAll(
+    ".quick-button"
+).forEach(
+    button => {
 
-        if (
-            event.key === "Enter" &&
-            !event.shiftKey
-        ) {
+        button.addEventListener(
+            "click",
+            () => {
 
-            event.preventDefault();
+                const prompt =
+                    button.dataset.prompt;
 
-            sendMessage(
-                promptInput.value
-            );
-        }
+                sendMessage(
+                    prompt
+                );
+
+            }
+        );
+
     }
 );
 
 
 clearButton.addEventListener(
     "click",
-    clearConversation
+    () => {
+
+        conversation = [];
+
+        conversationElement.innerHTML = `
+            <div class="conversation-message assistant">
+
+                <div class="message-header">
+                    EduAgent AI
+                </div>
+
+                <div class="message-content">
+                    Conversation cleared. Ready for your next request.
+                </div>
+
+            </div>
+        `;
+
+        responseContainer.innerHTML = "";
+
+        agentActivity.innerHTML = "";
+
+    }
 );
 
 
-// ==================================================
-// INITIALIZATION
-// ==================================================
+let recognition = null;
 
-setupQuickActions();
 
-setupVoiceRecognition();
+if (
+    "webkitSpeechRecognition" in window ||
+    "SpeechRecognition" in window
+) {
 
-console.log(
-    "EduAgent AI multi-agent frontend initialized successfully."
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    recognition =
+        new SpeechRecognition();
+
+    recognition.lang = "en-US";
+
+    recognition.interimResults =
+        false;
+
+    recognition.continuous =
+        false;
+
+    recognition.onstart =
+        () => {
+
+            voiceButton.classList.add(
+                "listening"
+            );
+
+            voiceStatus.textContent =
+                "Listening...";
+        };
+
+    recognition.onresult =
+        event => {
+
+            const transcript =
+                event
+                    .results[0][0]
+                    .transcript;
+
+            userInput.value =
+                transcript;
+
+            voiceStatus.textContent =
+                "Voice captured";
+
+            sendMessage(
+                transcript
+            );
+        };
+
+    recognition.onerror =
+        () => {
+
+            voiceStatus.textContent =
+                "Voice input failed";
+
+            voiceButton.classList.remove(
+                "listening"
+            );
+        };
+
+    recognition.onend =
+        () => {
+
+            voiceButton.classList.remove(
+                "listening"
+            );
+
+            if (
+                voiceStatus.textContent ===
+                "Listening..."
+            ) {
+
+                voiceStatus.textContent =
+                    "Tap to speak";
+            }
+        };
+
+}
+
+
+voiceButton.addEventListener(
+    "click",
+    () => {
+
+        if (!recognition) {
+
+            voiceStatus.textContent =
+                "Voice input is not supported in this browser.";
+
+            return;
+        }
+
+        recognition.start();
+
+    }
 );
 
 
