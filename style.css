@@ -1238,6 +1238,157 @@ button:disabled {
     }
 }
 
+/* ================================
+   Web Search UI
+================================ */
+
+.web-search-query {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 14px;
+}
+
+.web-search-summary {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.web-summary-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.web-search-summary p {
+    margin: 0;
+    line-height: 1.65;
+    font-size: 14px;
+}
+
+.web-sources-title {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.web-sources {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.web-source-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.web-source-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.web-source-number {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.08);
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.web-source-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.web-source-content strong {
+    display: block;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.web-source-content p {
+    margin: 7px 0 10px;
+    font-size: 13px;
+    line-height: 1.55;
+    opacity: 0.78;
+}
+
+.web-source-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+}
+
+.web-source-meta a {
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.web-source-meta a:hover {
+    text-decoration: underline;
+}
+
+.web-source-meta span {
+    opacity: 0.7;
+}
+
+
+/* ================================
+   Web Search Mobile
+================================ */
+
+@media (max-width: 600px) {
+
+    .web-search-summary {
+        padding: 14px;
+    }
+
+    .web-source-card {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .web-source-content strong {
+        font-size: 13px;
+    }
+
+    .web-source-content p {
+        font-size: 12px;
+    }
+
+    .web-source-meta {
+        font-size: 11px;
+    }
+
+}
+
 
 
 
