@@ -39,6 +39,7 @@ root.innerHTML = `
             </div>
 
             <div class="voice-area">
+
                 <button
                     id="voice-button"
                     class="voice-button"
@@ -48,6 +49,7 @@ root.innerHTML = `
                 </button>
 
                 <p>Tap to speak</p>
+
             </div>
 
             <div class="input-area">
@@ -119,7 +121,10 @@ root.innerHTML = `
 
             </div>
 
-            <div id="response" class="response"></div>
+            <div
+                id="response"
+                class="response"
+            ></div>
 
             <div
                 id="agent-activity"
@@ -152,14 +157,29 @@ root.innerHTML = `
    Element References
 ================================ */
 
-const userInput = document.getElementById("user-input");
-const askButton = document.getElementById("ask-button");
-const voiceButton = document.getElementById("voice-button");
-const responseBox = document.getElementById("response");
-const toolIndicator = document.getElementById("tool-indicator");
-const conversationBox = document.getElementById("conversation");
-const clearButton = document.getElementById("clear-button");
-const agentActivity = document.getElementById("agent-activity");
+const userInput =
+    document.getElementById("user-input");
+
+const askButton =
+    document.getElementById("ask-button");
+
+const voiceButton =
+    document.getElementById("voice-button");
+
+const responseBox =
+    document.getElementById("response");
+
+const toolIndicator =
+    document.getElementById("tool-indicator");
+
+const conversationBox =
+    document.getElementById("conversation");
+
+const clearButton =
+    document.getElementById("clear-button");
+
+const agentActivity =
+    document.getElementById("agent-activity");
 
 
 /* ================================
@@ -193,6 +213,7 @@ async function askAgent(prompt) {
             `${API_URL}/alexa-simulate`,
             {
                 method: "POST",
+
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -210,7 +231,8 @@ async function askAgent(prompt) {
             );
         }
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
         console.log(
             "EduAgent API response:",
@@ -224,11 +246,14 @@ async function askAgent(prompt) {
         );
 
         const action =
-            data.agent_result?.action || "general";
+            data.agent_result?.action ||
+            "general";
 
         try {
 
-            await runWorkflowAnimation(action);
+            await runWorkflowAnimation(
+                action
+            );
 
         } catch (workflowError) {
 
@@ -276,8 +301,6 @@ async function askAgent(prompt) {
             error
         );
 
-        alert(error.message);
-
         responseBox.innerHTML = `
             <div class="response-error">
                 Unable to connect to EduAgent AI.
@@ -287,6 +310,10 @@ async function askAgent(prompt) {
 
         toolIndicator.textContent =
             "API connection error";
+
+        console.error(
+            error.message
+        );
 
     } finally {
 
@@ -318,6 +345,10 @@ function renderResponse(data) {
 
     let html = "";
 
+    /* ============================
+       Study Plan
+    ============================ */
+
     if (action === "study_plan") {
 
         html += `
@@ -330,7 +361,9 @@ function renderResponse(data) {
 
             html += `
                 <h3>
-                    ${escapeHTML(agentResult.topic)}
+                    ${escapeHTML(
+                        agentResult.topic
+                    )}
                 </h3>
             `;
         }
@@ -339,37 +372,58 @@ function renderResponse(data) {
 
             html += `
                 <p>
-                    ${agentResult.days}-day study plan
+                    ${escapeHTML(
+                        String(agentResult.days)
+                    )}-day study plan
                 </p>
             `;
         }
 
-        if (Array.isArray(agentResult.plan)) {
+        if (
+            Array.isArray(
+                agentResult.plan
+            )
+        ) {
 
-            agentResult.plan.forEach(day => {
+            agentResult.plan.forEach(
+                day => {
 
-                html += `
-                    <div class="plan-day">
+                    html += `
+                        <div class="plan-day">
 
-                        <strong>
-                            Day ${day.day}
-                        </strong>
+                            <strong>
+                                Day ${escapeHTML(
+                                    String(day.day)
+                                )}
+                            </strong>
 
-                        <div>
-                            ${escapeHTML(day.focus || "")}
+                            <div>
+                                ${escapeHTML(
+                                    day.focus || ""
+                                )}
+                            </div>
+
+                            <small>
+                                ${escapeHTML(
+                                    day.task || ""
+                                )}
+                            </small>
+
                         </div>
-
-                        <small>
-                            ${escapeHTML(day.task || "")}
-                        </small>
-
-                    </div>
-                `;
-
-            });
+                    `;
+                }
+            );
         }
 
-    } else if (action === "learning_resources") {
+    }
+
+    /* ============================
+       Learning Resources
+    ============================ */
+
+    else if (
+        action === "learning_resources"
+    ) {
 
         html += `
             <div class="tool-label">
@@ -381,37 +435,52 @@ function renderResponse(data) {
 
             html += `
                 <h3>
-                    ${escapeHTML(agentResult.topic)}
+                    ${escapeHTML(
+                        agentResult.topic
+                    )}
                 </h3>
             `;
         }
 
-        if (Array.isArray(agentResult.resources)) {
+        if (
+            Array.isArray(
+                agentResult.resources
+            )
+        ) {
 
-            agentResult.resources.forEach(resource => {
+            agentResult.resources.forEach(
+                resource => {
 
-                html += `
-                    <div class="resource-item">
+                    html += `
+                        <div class="resource-item">
 
-                        <strong>
-                            ${escapeHTML(
-                                resource.title || ""
-                            )}
-                        </strong>
+                            <strong>
+                                ${escapeHTML(
+                                    resource.title || ""
+                                )}
+                            </strong>
 
-                        <p>
-                            ${escapeHTML(
-                                resource.purpose || ""
-                            )}
-                        </p>
+                            <p>
+                                ${escapeHTML(
+                                    resource.purpose || ""
+                                )}
+                            </p>
 
-                    </div>
-                `;
-
-            });
+                        </div>
+                    `;
+                }
+            );
         }
 
-    } else if (action === "calculator") {
+    }
+
+    /* ============================
+       Calculator
+    ============================ */
+
+    else if (
+        action === "calculator"
+    ) {
 
         html += `
             <div class="tool-label">
@@ -442,17 +511,46 @@ function renderResponse(data) {
             html += `
                 <div class="calculator-result">
                     ${escapeHTML(
-                        String(agentResult.result)
+                        String(
+                            agentResult.result
+                        )
                     )}
                 </div>
             `;
         }
 
-    } else if (action === "web_search") {
+        if (agentResult.error) {
 
-        html += renderWebSearch(agentResult);
+            html += `
+                <div class="response-error">
+                    ${escapeHTML(
+                        agentResult.error
+                    )}
+                </div>
+            `;
+        }
 
-    } else {
+    }
+
+    /* ============================
+       Web Search
+    ============================ */
+
+    else if (
+        action === "web_search"
+    ) {
+
+        html += renderWebSearch(
+            agentResult
+        );
+
+    }
+
+    /* ============================
+       General AI
+    ============================ */
+
+    else {
 
         html += `
             <div class="tool-label">
@@ -462,7 +560,7 @@ function renderResponse(data) {
 
         html += `
             <p>
-                ${escapeHTML(
+                ${formatAIText(
                     getResponseText(data)
                 )}
             </p>
@@ -477,7 +575,9 @@ function renderResponse(data) {
    Web Search Renderer
 ================================ */
 
-function renderWebSearch(agentResult) {
+function renderWebSearch(
+    agentResult
+) {
 
     let html = `
         <div class="tool-label">
@@ -489,8 +589,11 @@ function renderWebSearch(agentResult) {
         agentResult.tool_result || {};
 
     const query =
-        toolResult.query ||
-        "";
+        toolResult.query || "";
+
+    /* ============================
+       Search Query
+    ============================ */
 
     if (query) {
 
@@ -502,33 +605,47 @@ function renderWebSearch(agentResult) {
         `;
     }
 
+    /* ============================
+       Research Summary
+    ============================ */
+
     let summary = "";
 
-    if (agentResult.response) {
+    if (toolResult.answer) {
+
+        summary =
+            toolResult.answer;
+
+    } else if (agentResult.response) {
 
         try {
 
             const parsed =
-                typeof agentResult.response === "string"
-                    ? JSON.parse(agentResult.response)
+                typeof agentResult.response ===
+                "string"
+
+                    ? JSON.parse(
+                        agentResult.response
+                    )
+
                     : agentResult.response;
 
             summary =
                 parsed.summary ||
                 parsed.answer ||
+                parsed.message ||
                 "";
 
         } catch (error) {
 
             summary =
-                typeof agentResult.response === "string"
+                typeof agentResult.response ===
+                "string"
+
                     ? agentResult.response
+
                     : "";
         }
-    }
-
-    if (!summary && toolResult.answer) {
-        summary = toolResult.answer;
     }
 
     if (summary) {
@@ -541,16 +658,26 @@ function renderWebSearch(agentResult) {
                 </div>
 
                 <p>
-                    ${escapeHTML(summary)}
+                    ${formatAIText(
+                        cleanWebText(summary)
+                    )}
                 </p>
 
             </div>
         `;
     }
 
+    /* ============================
+       Sources
+    ============================ */
+
     const results =
-        Array.isArray(toolResult.results)
+        Array.isArray(
+            toolResult.results
+        )
+
             ? toolResult.results
+
             : [];
 
     if (results.length > 0) {
@@ -563,94 +690,119 @@ function renderWebSearch(agentResult) {
             <div class="web-sources">
         `;
 
-        results.forEach((result, index) => {
+        results.forEach(
+            (result, index) => {
 
-            const title =
-                result.title ||
-                "Web Result";
+                const title =
+                    result.title ||
+                    "Web Result";
 
-            const url =
-                result.url ||
-                "";
+                const url =
+                    result.url ||
+                    "";
 
-            const content =
-                result.content ||
-                "";
+                const content =
+                    result.content ||
+                    "";
 
-            const score =
-                typeof result.score === "number"
-                    ? `${Math.round(result.score * 100)}%`
-                    : "";
+                const score =
+                    typeof result.score ===
+                    "number"
 
-            html += `
-                <div class="web-source-card">
+                        ? `${Math.round(
+                            result.score * 100
+                        )}%`
 
-                    <div class="web-source-number">
-                        ${index + 1}
-                    </div>
+                        : "";
 
-                    <div class="web-source-content">
+                html += `
+                    <div class="web-source-card">
 
-                        <strong>
-                            ${escapeHTML(title)}
-                        </strong>
+                        <div class="web-source-number">
+                            ${index + 1}
+                        </div>
 
-                        ${
-                            content
-                                ? `
-                                    <p>
-                                        ${escapeHTML(
-                                              truncateText(
-                                              cleanWebText(content),
-                                              240
-    )
-)}
-                                            
-                                                
-                                                
-                                            
-                                        
-                                    </p>
-                                  `
-                                : ""
-                        }
+                        <div class="web-source-content">
 
-                        <div class="web-source-meta">
+                            <strong>
+                                ${escapeHTML(
+                                    cleanWebText(
+                                        title
+                                    )
+                                )}
+                            </strong>
 
                             ${
-                                url
+                                content
                                     ? `
-                                        <a
-                                            href="${escapeAttribute(url)}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            View Source ↗
-                                        </a>
+                                        <p>
+                                            ${escapeHTML(
+                                                truncateText(
+                                                    cleanWebText(
+                                                        content
+                                                    ),
+                                                    260
+                                                )
+                                            )}
+                                        </p>
                                       `
                                     : ""
                             }
 
-                            ${
-                                score
-                                    ? `
-                                        <span>
-                                            Relevance ${score}
-                                        </span>
-                                      `
-                                    : ""
-                            }
+                            <div class="web-source-meta">
+
+                                ${
+                                    url
+                                        ? `
+                                            <a
+                                                href="${escapeAttribute(
+                                                    url
+                                                )}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                View Source ↗
+                                            </a>
+                                          `
+                                        : ""
+                                }
+
+                                ${
+                                    score
+                                        ? `
+                                            <span>
+                                                Relevance ${score}
+                                            </span>
+                                          `
+                                        : ""
+                                }
+
+                            </div>
 
                         </div>
 
                     </div>
-
-                </div>
-            `;
-
-        });
+                `;
+            }
+        );
 
         html += `
+            </div>
+        `;
+    }
+
+    /* ============================
+       No Search Results
+    ============================ */
+
+    if (
+        results.length === 0 &&
+        !summary
+    ) {
+
+        html += `
+            <div class="response-error">
+                No useful web information was returned.
             </div>
         `;
     }
@@ -668,10 +820,24 @@ function getResponseText(data) {
     const agentResult =
         data.agent_result || {};
 
-    if (agentResult.action === "web_search") {
+    /* ============================
+       Web Search
+    ============================ */
 
-        if (agentResult.tool_result?.answer) {
-            return agentResult.tool_result.answer;
+    if (
+        agentResult.action ===
+        "web_search"
+    ) {
+
+        if (
+            agentResult.tool_result?.answer
+        ) {
+
+            return (
+                agentResult
+                    .tool_result
+                    .answer
+            );
         }
 
         if (agentResult.response) {
@@ -679,19 +845,33 @@ function getResponseText(data) {
             try {
 
                 const parsed =
-                    typeof agentResult.response === "string"
-                        ? JSON.parse(agentResult.response)
+                    typeof agentResult.response ===
+                    "string"
+
+                        ? JSON.parse(
+                            agentResult.response
+                        )
+
                         : agentResult.response;
 
                 if (parsed.summary) {
                     return parsed.summary;
                 }
 
+                if (parsed.answer) {
+                    return parsed.answer;
+                }
+
             } catch (error) {
+
                 return agentResult.response;
             }
         }
     }
+
+    /* ============================
+       Standard Response
+    ============================ */
 
     if (agentResult.response) {
 
@@ -699,7 +879,25 @@ function getResponseText(data) {
             typeof agentResult.response ===
             "string"
         ) {
-            return agentResult.response;
+
+            try {
+
+                const parsed =
+                    JSON.parse(
+                        agentResult.response
+                    );
+
+                return (
+                    parsed.answer ||
+                    parsed.message ||
+                    parsed.summary ||
+                    agentResult.response
+                );
+
+            } catch (error) {
+
+                return agentResult.response;
+            }
         }
 
         if (
@@ -710,6 +908,7 @@ function getResponseText(data) {
             return (
                 agentResult.response.answer ||
                 agentResult.response.message ||
+                agentResult.response.summary ||
                 JSON.stringify(
                     agentResult.response
                 )
@@ -725,8 +924,13 @@ function getResponseText(data) {
         return agentResult.message;
     }
 
-    if (agentResult.result !== undefined) {
-        return String(agentResult.result);
+    if (
+        agentResult.result !== undefined
+    ) {
+
+        return String(
+            agentResult.result
+        );
     }
 
     return "Response generated successfully.";
@@ -737,7 +941,9 @@ function getResponseText(data) {
    Agent Activity
 ================================ */
 
-function renderAgentActivity(trace) {
+function renderAgentActivity(
+    trace
+) {
 
     if (!agentActivity) {
         return;
@@ -765,13 +971,21 @@ function renderAgentActivity(trace) {
 
         if (item.step === 1) {
             icon = "👤";
-        } else if (item.step === 2) {
+        }
+
+        else if (item.step === 2) {
             icon = "🧠";
-        } else if (item.step === 3) {
+        }
+
+        else if (item.step === 3) {
             icon = "🔧";
-        } else if (item.step === 4) {
+        }
+
+        else if (item.step === 4) {
             icon = "⚙️";
-        } else if (item.step === 5) {
+        }
+
+        else if (item.step === 5) {
             icon = "✅";
         }
 
@@ -802,7 +1016,6 @@ function renderAgentActivity(trace) {
 
             </div>
         `;
-
     });
 
     agentActivity.innerHTML = html;
@@ -829,8 +1042,10 @@ function getActivityTitle(stage) {
             "Response completed"
     };
 
-    return titles[stage] ||
-        "Agent processing";
+    return (
+        titles[stage] ||
+        "Agent processing"
+    );
 }
 
 
@@ -849,14 +1064,17 @@ function buildWorkflow(action) {
         return;
     }
 
-    let selectedNode = "general";
+    let selectedNode =
+        "general";
 
     if (action === "study_plan") {
 
         selectedNode =
             "study_plan";
 
-    } else if (action === "calculator") {
+    } else if (
+        action === "calculator"
+    ) {
 
         selectedNode =
             "calculator";
@@ -1047,7 +1265,10 @@ function buildWorkflow(action) {
         );
 
     if (selected) {
-        selected.classList.add("selected");
+
+        selected.classList.add(
+            "selected"
+        );
     }
 }
 
@@ -1068,6 +1289,7 @@ function createBranchTool(
                 class="branch-node pending"
                 data-branch-node="${node}"
             >
+
                 <div class="branch-icon">
                     ${icon}
                 </div>
@@ -1079,6 +1301,7 @@ function createBranchTool(
                 <small>
                     ${description}
                 </small>
+
             </div>
 
             <div class="branch-tool-arrow">
@@ -1105,10 +1328,14 @@ function setBranchNodeState(
         "completed"
     );
 
-    node.classList.add(state);
+    node.classList.add(
+        state
+    );
 
     const strong =
-        node.querySelector("strong");
+        node.querySelector(
+            "strong"
+        );
 
     if (!strong) {
         return;
@@ -1152,14 +1379,19 @@ async function runWorkflowAnimation(
             "branch-workflow-status"
         );
 
-    let selectedNode = "general";
+    let selectedNode =
+        "general";
 
-    if (action === "study_plan") {
+    if (
+        action === "study_plan"
+    ) {
 
         selectedNode =
             "study_plan";
 
-    } else if (action === "calculator") {
+    } else if (
+        action === "calculator"
+    ) {
 
         selectedNode =
             "calculator";
@@ -1220,7 +1452,9 @@ async function runWorkflowAnimation(
         }
     ];
 
-    for (const step of steps) {
+    for (
+        const step of steps
+    ) {
 
         const node =
             document.querySelector(
@@ -1237,6 +1471,7 @@ async function runWorkflowAnimation(
         );
 
         if (status) {
+
             status.textContent =
                 step.message;
         }
@@ -1259,7 +1494,9 @@ async function runWorkflowAnimation(
 }
 
 
-function getWorkflowToolName(node) {
+function getWorkflowToolName(
+    node
+) {
 
     const names = {
 
@@ -1279,8 +1516,10 @@ function getWorkflowToolName(node) {
             "General AI"
     };
 
-    return names[node] ||
-        "Agent";
+    return (
+        names[node] ||
+        "Agent"
+    );
 }
 
 
@@ -1299,13 +1538,17 @@ function addConversationMessage(
     }
 
     const wrapper =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     wrapper.className =
         `conversation-message ${type}`;
 
     const header =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     header.className =
         "message-header";
@@ -1314,16 +1557,25 @@ function addConversationMessage(
         sender;
 
     const content =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     content.className =
         "message-content";
 
     content.textContent =
-        message;
+        cleanWebText(
+            message
+        );
 
-    wrapper.appendChild(header);
-    wrapper.appendChild(content);
+    wrapper.appendChild(
+        header
+    );
+
+    wrapper.appendChild(
+        content
+    );
 
     conversationBox.appendChild(
         wrapper
@@ -1339,20 +1591,26 @@ function addConversationMessage(
 ================================ */
 
 document
-    .querySelectorAll(".quick-button")
-    .forEach(button => {
+    .querySelectorAll(
+        ".quick-button"
+    )
+    .forEach(
+        button => {
 
-        button.addEventListener(
-            "click",
-            () => {
+            button.addEventListener(
+                "click",
+                () => {
 
-                const prompt =
-                    button.dataset.prompt;
+                    const prompt =
+                        button.dataset.prompt;
 
-                askAgent(prompt);
-            }
-        );
-    });
+                    askAgent(
+                        prompt
+                    );
+                }
+            );
+        }
+    );
 
 
 /* ================================
@@ -1378,7 +1636,9 @@ userInput.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
 
             event.preventDefault();
 
@@ -1400,14 +1660,17 @@ clearButton.addEventListener(
 
         conversationHistory = [];
 
-        conversationBox.innerHTML = "";
+        conversationBox.innerHTML =
+            "";
 
-        responseBox.innerHTML = "";
+        responseBox.innerHTML =
+            "";
 
         toolIndicator.textContent =
             "No tool selected";
 
-        agentActivity.innerHTML = "";
+        agentActivity.innerHTML =
+            "";
 
         const workflow =
             document.getElementById(
@@ -1432,8 +1695,10 @@ clearButton.addEventListener(
 let recognition = null;
 
 if (
-    "webkitSpeechRecognition" in window ||
-    "SpeechRecognition" in window
+    "webkitSpeechRecognition" in
+    window ||
+    "SpeechRecognition" in
+    window
 ) {
 
     const SpeechRecognition =
@@ -1443,48 +1708,59 @@ if (
     recognition =
         new SpeechRecognition();
 
-    recognition.lang = "en-US";
+    recognition.lang =
+        "en-US";
 
-    recognition.continuous = false;
+    recognition.continuous =
+        false;
 
-    recognition.interimResults = false;
+    recognition.interimResults =
+        false;
 
-    recognition.onstart = () => {
+    recognition.onstart =
+        () => {
 
-        voiceButton.classList.add(
-            "active"
-        );
-    };
+            voiceButton.classList.add(
+                "active"
+            );
+        };
 
-    recognition.onresult = event => {
+    recognition.onresult =
+        event => {
 
-        const transcript =
-            event.results[0][0].transcript;
+            const transcript =
+                event
+                    .results[0][0]
+                    .transcript;
 
-        userInput.value =
-            transcript;
+            userInput.value =
+                transcript;
 
-        askAgent(transcript);
-    };
+            askAgent(
+                transcript
+            );
+        };
 
-    recognition.onerror = error => {
+    recognition.onerror =
+        error => {
 
-        console.error(
-            "Speech recognition error:",
-            error
-        );
+            console.error(
+                "Speech recognition error:",
+                error
+            );
 
-        voiceButton.classList.remove(
-            "active"
-        );
-    };
+            voiceButton.classList.remove(
+                "active"
+            );
+        };
 
-    recognition.onend = () => {
+    recognition.onend =
+        () => {
 
-        voiceButton.classList.remove(
-            "active"
-        );
-    };
+            voiceButton.classList.remove(
+                "active"
+            );
+        };
 }
 
 
@@ -1500,7 +1776,17 @@ voiceButton.addEventListener(
             return;
         }
 
-        recognition.start();
+        try {
+
+            recognition.start();
+
+        } catch (error) {
+
+            console.error(
+                "Voice recognition error:",
+                error
+            );
+        }
     }
 );
 
@@ -1509,7 +1795,9 @@ voiceButton.addEventListener(
    Utilities
 ================================ */
 
-function formatAction(action) {
+function formatAction(
+    action
+) {
 
     const names = {
 
@@ -1529,8 +1817,54 @@ function formatAction(action) {
             "General AI"
     };
 
-    return names[action] ||
-        action;
+    return (
+        names[action] ||
+        action
+    );
+}
+
+
+function cleanWebText(
+    text
+) {
+
+    if (!text) {
+        return "";
+    }
+
+    return String(text)
+
+        .replace(
+            /#{1,6}\s*/g,
+            ""
+        )
+
+        .replace(
+            /\*\*/g,
+            ""
+        )
+
+        .replace(
+            /\r?\n+/g,
+            " "
+        )
+
+        .replace(
+            /\s+/g,
+            " "
+        )
+
+        .trim();
+}
+
+
+function formatAIText(
+    text
+) {
+
+    return escapeHTML(
+        cleanWebText(text)
+    );
 }
 
 
@@ -1542,7 +1876,11 @@ function truncateText(
     const value =
         String(text || "");
 
-    if (value.length <= maxLength) {
+    if (
+        value.length <=
+        maxLength
+    ) {
+
         return value;
     }
 
@@ -1555,28 +1893,70 @@ function truncateText(
 }
 
 
-function escapeHTML(value) {
+function escapeHTML(
+    value
+) {
 
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 }
 
 
-function escapeAttribute(value) {
+function escapeAttribute(
+    value
+) {
 
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        );
 }
 
 
-function delay(milliseconds) {
+function delay(
+    milliseconds
+) {
 
     return new Promise(
         resolve =>
